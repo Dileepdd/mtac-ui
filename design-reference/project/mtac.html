@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MTAC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>
+// Tweakable defaults
+window.MTAC_TWEAKS = /*EDITMODE-BEGIN*/{
+  "accent": "#4F46E5",
+  "radius": 8,
+  "density": "comfortable",
+  "font": "geist",
+  "theme": "light"
+}/*EDITMODE-END*/;
+</script>
+
+<style>
+  :root {
+    --accent: #4F46E5;
+    --accent-2: #6366F1;
+    --accent-wash: rgba(79, 70, 229, 0.08);
+    --accent-text: #4F46E5;
+
+    --font-ui: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, "SF Mono", monospace;
+    --font-display: "Geist", sans-serif;
+
+    --radius: 8px;
+    --radius-sm: 6px;
+    --radius-lg: 12px;
+
+    --row: 32px;
+    --pad: 12px;
+
+    /* Light theme */
+    --bg: #fcfcfb;
+    --bg-2: #ffffff;
+    --bg-sub: #f6f6f5;
+    --bg-hover: #f2f2f0;
+    --border: #ebebe8;
+    --border-strong: #d6d6d2;
+    --text: #1a1a1a;
+    --text-2: #4a4a48;
+    --text-3: #8a8a85;
+    --text-4: #b0b0ab;
+    --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+    --shadow-md: 0 4px 12px rgba(15, 15, 15, 0.06), 0 1px 3px rgba(15, 15, 15, 0.04);
+    --shadow-lg: 0 20px 60px rgba(15, 15, 15, 0.12), 0 4px 12px rgba(15, 15, 15, 0.06);
+
+    --status-todo: #8a8a85;
+    --status-progress: #d97706;
+    --status-done: #059669;
+    --priority-urgent: #dc2626;
+    --priority-high: #ea580c;
+    --priority-med: #ca8a04;
+    --priority-low: #65a30d;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0f0f10;
+    --bg-2: #161618;
+    --bg-sub: #1a1a1c;
+    --bg-hover: #212124;
+    --border: #26262a;
+    --border-strong: #36363c;
+    --text: #f0f0ee;
+    --text-2: #b8b8b4;
+    --text-3: #7a7a75;
+    --text-4: #555551;
+    --accent-wash: rgba(99, 102, 241, 0.16);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-font="plex"] {
+    --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --font-display: "Instrument Serif", serif;
+  }
+
+  [data-density="compact"] { --row: 28px; --pad: 8px; }
+  [data-density="comfortable"] { --row: 32px; --pad: 12px; }
+  [data-density="spacious"] { --row: 40px; --pad: 16px; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
+    letter-spacing: -0.005em;
+  }
+  #root { min-height: 100vh; }
+
+  button, input, textarea, select {
+    font: inherit;
+    color: inherit;
+  }
+  button { cursor: pointer; border: none; background: none; padding: 0; }
+  a { color: inherit; text-decoration: none; }
+
+  ::selection { background: var(--accent-wash); color: var(--text); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+  /* Reusable */
+  .mono { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0; }
+  .kbd {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
+    color: var(--text-3);
+    background: var(--bg-sub);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .hair { border-color: var(--border); }
+
+  /* Animations */
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-sub) 0%, var(--bg-hover) 50%, var(--bg-sub) 100%);
+    background-size: 1000px 100%;
+    animation: shimmer 1.6s infinite linear;
+    border-radius: 4px;
+  }
+
+  /* Focus rings (subtle) */
+  .focus-ring:focus-visible, input:focus-visible, textarea:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  input:focus, textarea:focus { outline: none; }
+
+  [data-dragging="true"] { opacity: 0.4; }
+  [data-drag-over="true"] { background: var(--accent-wash); }
+</style>
+
+<!-- Splash bundle thumbnail -->
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect width="100" height="100" fill="#fcfcfb"/>
+    <rect x="30" y="30" width="40" height="40" rx="8" fill="#4F46E5"/>
+    <text x="50" y="58" text-anchor="middle" font-family="monospace" font-size="16" font-weight="600" fill="#fff">M</text>
+  </svg>
+</template>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="src/data.jsx"></script>
+<script type="text/babel" src="src/icons.jsx"></script>
+<script type="text/babel" src="src/components.jsx"></script>
+<script type="text/babel" src="src/sidebar.jsx"></script>
+<script type="text/babel" src="src/cmdk.jsx"></script>
+<script type="text/babel" src="src/tweaks.jsx"></script>
+<script type="text/babel" src="src/screen-auth.jsx"></script>
+<script type="text/babel" src="src/screen-dashboard.jsx"></script>
+<script type="text/babel" src="src/screen-workspace.jsx"></script>
+<script type="text/babel" src="src/screen-project.jsx"></script>
+<script type="text/babel" src="src/screen-members.jsx"></script>
+<script type="text/babel" src="src/screen-settings.jsx"></script>
+<script type="text/babel" src="src/task-modal.jsx"></script>
+<script type="text/babel" src="src/app.jsx"></script>
+</body>
+</html>

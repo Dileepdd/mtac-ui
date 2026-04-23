@@ -1,0 +1,212 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark mode driven by data-theme="dark" on <html> */
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+/* ─── Tailwind utilities ─────────────────────────────────────────────────── */
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-mono-ui);
+
+  --color-background:           var(--bg);
+  --color-foreground:           var(--text);
+  --color-card:                 var(--bg-2);
+  --color-card-foreground:      var(--text);
+  --color-popover:              var(--bg-2);
+  --color-popover-foreground:   var(--text);
+  --color-primary:              var(--accent);
+  --color-primary-foreground:   #ffffff;
+  --color-secondary:            var(--bg-sub);
+  --color-secondary-foreground: var(--text);
+  --color-muted:                var(--bg-sub);
+  --color-muted-foreground:     var(--text-3);
+  --color-accent:               var(--accent-wash);
+  --color-accent-foreground:    var(--accent);
+  --color-destructive:          #dc2626;
+  --color-border:               var(--border);
+  --color-input:                var(--border);
+  --color-ring:                 var(--accent);
+}
+
+/* ─── Light theme ────────────────────────────────────────────────────────── */
+:root {
+  /* Primary action color — indigo (design default) */
+  --accent:      #4F46E5;
+  --accent-2:    #6366F1;
+  --accent-wash: rgba(79, 70, 229, 0.08);
+
+  /* Background layers */
+  --bg:       #fcfcfb;
+  --bg-2:     #ffffff;
+  --bg-sub:   #f6f6f5;
+  --bg-hover: #f2f2f0;
+
+  /* Borders */
+  --border:        #ebebe8;
+  --border-strong: #d6d6d2;
+
+  /* Text hierarchy */
+  --text:   #1a1a1a;
+  --text-2: #4a4a48;
+  --text-3: #8a8a85;
+  --text-4: #b0b0ab;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 15, 15, 0.06), 0 1px 3px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 20px 60px rgba(15, 15, 15, 0.12), 0 4px 12px rgba(15, 15, 15, 0.06);
+
+  /* Radius */
+  --radius:    8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+
+  /* Density (row height + padding) */
+  --row: 32px;
+  --pad: 12px;
+
+  /* Status colors */
+  --status-todo:     #8a8a85;
+  --status-progress: #d97706;
+  --status-done:     #059669;
+
+  /* Priority colors */
+  --priority-urgent: #dc2626;
+  --priority-high:   #ea580c;
+  --priority-med:    #ca8a04;
+  --priority-low:    #65a30d;
+
+  /* Fonts */
+  --font-ui:      "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-ui: "Geist Mono", ui-monospace, "SF Mono", monospace;
+}
+
+/* ─── Dark theme ─────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:       #0f0f10;
+  --bg-2:     #161618;
+  --bg-sub:   #1a1a1c;
+  --bg-hover: #212124;
+
+  --border:        #26262a;
+  --border-strong: #36363c;
+
+  --text:   #f0f0ee;
+  --text-2: #b8b8b4;
+  --text-3: #7a7a75;
+  --text-4: #555551;
+
+  --accent-wash: rgba(99, 102, 241, 0.16);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Density ─────────────────────────────────────────────────────────────── */
+[data-density="compact"]     { --row: 28px; --pad:  8px; }
+[data-density="comfortable"] { --row: 32px; --pad: 12px; }
+[data-density="spacious"]    { --row: 40px; --pad: 16px; }
+
+/* ─── Font variants ───────────────────────────────────────────────────────── */
+[data-font="geist"] {
+  --font-ui:      "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-ui: "Geist Mono", ui-monospace, "SF Mono", monospace;
+}
+[data-font="plex"] {
+  --font-ui:      "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono-ui: "IBM Plex Mono", ui-monospace, monospace;
+}
+[data-font="system"] {
+  --font-ui:      ui-sans-serif, system-ui, sans-serif;
+  --font-mono-ui: ui-monospace, monospace;
+}
+
+/* ─── Base reset ──────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01", "cv11";
+    letter-spacing: -0.005em;
+  }
+
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: none; background: none; padding: 0; }
+  a { color: inherit; text-decoration: none; }
+
+  ::selection { background: var(--accent-wash); color: var(--text); }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  input:focus, textarea:focus { outline: none; }
+
+  [data-dragging="true"]  { opacity: 0.4; }
+  [data-drag-over="true"] { background: var(--accent-wash); }
+}
+
+/* ─── Utility classes ─────────────────────────────────────────────────────── */
+.mono {
+  font-family: var(--font-mono-ui);
+  font-size: 11.5px;
+  letter-spacing: 0;
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-family: var(--font-mono-ui);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-3);
+  background: var(--bg-sub);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-sub) 0%, var(--bg-hover) 50%, var(--bg-sub) 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 4px;
+}

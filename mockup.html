@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MTAC UI Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #F4F5F7; color: #172B4D; font-size: 14px; }
+
+  /* ── NAV BAR (screen switcher) ─────────────────────────── */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #0052CC; display: flex; gap: 2px; padding: 8px 16px; flex-wrap: wrap; }
+  .nav button { background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 500; }
+  .nav button.active { background: rgba(255,255,255,0.35); }
+  .nav button:hover:not(.active) { background: rgba(255,255,255,0.25); }
+  .screen { display: none; padding-top: 48px; min-height: 100vh; }
+  .screen.active { display: block; }
+
+  /* ── COLORS ────────────────────────────────────────────── */
+  :root {
+    --primary: #0C66E4;
+    --primary-hover: #0055CC;
+    --sidebar-bg: #1D2125;
+    --sidebar-text: #B6C2CF;
+    --sidebar-active-bg: #1C2B41;
+    --sidebar-hover: #282E33;
+    --sidebar-border: #2C333A;
+    --border: #DFE1E6;
+    --muted: #F7F8F9;
+    --muted-text: #626F86;
+    --text: #172B4D;
+    --white: #FFFFFF;
+    --destructive: #CA3521;
+    --success: #22A06B;
+    --warning: #FF991F;
+  }
+
+  /* ── BUTTONS ───────────────────────────────────────────── */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 4px; border: none; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--muted); }
+  .btn-danger { background: var(--destructive); color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 13px; }
+
+  /* ── FORMS ─────────────────────────────────────────────── */
+  .input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 14px; color: var(--text); outline: none; background: #fff; }
+  .input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(12,102,228,0.15); }
+  .label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; color: var(--text); }
+
+  /* ── BADGES ────────────────────────────────────────────── */
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-todo { background: #F1F2F4; color: #626F86; }
+  .badge-progress { background: #E9F2FF; color: #0C66E4; }
+  .badge-done { background: #DCFFF1; color: #216E4E; }
+  .badge-admin { background: #FFE7D6; color: #A54800; }
+  .badge-manager { background: #E9F2FF; color: #0C66E4; }
+  .badge-member { background: #F1F2F4; color: #626F86; }
+
+  /* ── AVATAR ────────────────────────────────────────────── */
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .avatar-lg { width: 40px; height: 40px; font-size: 15px; }
+
+  /* ── CARD ──────────────────────────────────────────────── */
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 1 — LOGIN                                         */
+  /* ════════════════════════════════════════════════════════ */
+  #login { background: #F4F5F7; display: flex; align-items: center; justify-content: center; }
+  .auth-box { width: 400px; }
+  .auth-logo { text-align: center; margin-bottom: 24px; }
+  .auth-logo-mark { width: 48px; height: 48px; background: var(--primary); border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+  .auth-logo h1 { font-size: 20px; font-weight: 700; color: var(--text); }
+  .auth-logo p { font-size: 13px; color: var(--muted-text); margin-top: 4px; }
+  .auth-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 28px; }
+  .auth-card h2 { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .auth-footer { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted-text); }
+  .auth-footer a { color: var(--primary); text-decoration: none; }
+  .divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--muted-text); font-size: 12px; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 3 — WORKSPACE SELECTOR                           */
+  /* ════════════════════════════════════════════════════════ */
+  #workspaces { background: #F4F5F7; }
+  .ws-header { background: #fff; border-bottom: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .ws-header .logo { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .ws-header .logo-mark { width: 28px; height: 28px; background: var(--primary); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 800; }
+  .ws-body { padding: 40px 32px; max-width: 960px; margin: 0 auto; }
+  .ws-body h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .ws-body p { color: var(--muted-text); margin-bottom: 28px; }
+  .ws-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .ws-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+  .ws-card:hover { border-color: var(--primary); box-shadow: 0 2px 12px rgba(12,102,228,0.12); }
+  .ws-card-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  .ws-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .ws-card p { font-size: 12px; color: var(--muted-text); }
+  .ws-new { border: 2px dashed var(--border); background: transparent; }
+  .ws-new:hover { border-color: var(--primary); background: #F8FAFF; }
+  .ws-new .ws-card-icon { background: var(--muted); color: var(--muted-text); }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* APP LAYOUT (Screens 4-9)                                */
+  /* ════════════════════════════════════════════════════════ */
+  .app-layout { display: flex; height: calc(100vh - 48px); overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 240px; background: var(--sidebar-bg); display: flex; flex-direction: column; flex-shrink: 0; border-right: 1px solid var(--sidebar-border); overflow-y: auto; }
+  .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 10px; }
+  .sidebar-ws-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .sidebar-ws-name { color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex:1; }
+  .sidebar-ws-chevron { color: var(--sidebar-text); font-size: 12px; }
+  .sidebar-section { padding: 8px 0; }
+  .sidebar-label { padding: 6px 16px 4px; font-size: 11px; font-weight: 600; color: #5C6776; text-transform: uppercase; letter-spacing: 0.6px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 7px 16px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; transition: background 0.12s; border-radius: 0; }
+  .sidebar-item:hover { background: var(--sidebar-hover); }
+  .sidebar-item.active { background: var(--sidebar-active-bg); color: #fff; }
+  .sidebar-item svg { opacity: 0.75; flex-shrink: 0; }
+  .sidebar-item.active svg { opacity: 1; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid var(--sidebar-border); padding: 10px 0; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; }
+  .sidebar-user:hover { background: var(--sidebar-hover); }
+  .sidebar-user-name { color: var(--sidebar-text); font-size: 13px; font-weight: 500; }
+  .sidebar-user-email { color: #5C6776; font-size: 11px; }
+
+  /* Main content */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+  .topbar { height: 52px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 12px; flex-shrink: 0; }
+  .topbar-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .topbar-breadcrumb { font-size: 13px; color: var(--muted-text); display: flex; align-items: center; gap: 6px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .topbar-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 24px; flex-shrink: 0; }
+  .topbar-tab { padding: 10px 16px; font-size: 13.5px; font-weight: 500; color: var(--muted-text); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .topbar-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 4 — KANBAN BOARD                                 */
+  /* ════════════════════════════════════════════════════════ */
+  .board-filters { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .search-input { padding: 6px 12px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 13px; width: 200px; color: var(--text); }
+  .search-input::placeholder { color: var(--muted-text); }
+  .board-cols { display: flex; gap: 16px; align-items: flex-start; overflow-x: auto; padding-bottom: 16px; }
+  .board-col { width: 280px; flex-shrink: 0; }
+  .col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .col-title { font-size: 13px; font-weight: 600; color: var(--muted-text); text-transform: uppercase; letter-spacing: 0.4px; }
+  .col-count { background: var(--muted); color: var(--muted-text); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
+  .col-cards { display: flex; flex-direction: column; gap: 8px; min-height: 100px; }
+  .task-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; cursor: pointer; transition: box-shadow 0.15s; }
+  .task-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-color: #c5cae0; }
+  .task-card-title { font-size: 13.5px; font-weight: 500; margin-bottom: 8px; line-height: 1.4; }
+  .task-card-meta { display: flex; align-items: center; justify-content: space-between; }
+  .task-card-id { font-size: 11px; color: var(--muted-text); font-weight: 500; }
+  .task-card-priority { display: flex; align-items: center; gap: 4px; }
+  .priority-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .priority-high { background: #CA3521; }
+  .priority-med { background: #FF991F; }
+  .priority-low { background: #22A06B; }
+  .add-card-btn { width: 100%; padding: 8px; border: 1.5px dashed var(--border); border-radius: 6px; background: transparent; color: var(--muted-text); font-size: 13px; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; }
+  .add-card-btn:hover { background: var(--muted); border-color: #c5cae0; color: var(--text); }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 5 — PROJECTS                                     */
+  /* ════════════════════════════════════════════════════════ */
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .project-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 18px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+  .project-card:hover { border-color: var(--primary); box-shadow: 0 2px 12px rgba(12,102,228,0.1); }
+  .project-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+  .project-card h3 { font-size: 14px; font-weight: 600; }
+  .project-card p { font-size: 12px; color: var(--muted-text); line-height: 1.5; margin-bottom: 14px; }
+  .project-card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .project-icon { width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; }
+  .progress-bar { height: 4px; background: var(--muted); border-radius: 2px; overflow: hidden; margin: 10px 0; }
+  .progress-fill { height: 100%; border-radius: 2px; background: var(--primary); }
+  .member-stack { display: flex; }
+  .member-stack .avatar { width: 22px; height: 22px; font-size: 9px; border: 2px solid #fff; margin-right: -6px; }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 6 — MEMBERS                                      */
+  /* ════════════════════════════════════════════════════════ */
+  .table { width: 100%; border-collapse: collapse; }
+  .table th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--muted-text); text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--border); background: var(--muted); }
+  .table td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: #FAFBFC; }
+  .member-cell { display: flex; align-items: center; gap: 10px; }
+  .member-info h4 { font-size: 13.5px; font-weight: 500; }
+  .member-info p { font-size: 12px; color: var(--muted-text); }
+  .table-actions { display: flex; align-items: center; gap: 6px; }
+  .icon-btn { width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted-text); font-size: 13px; }
+  .icon-btn:hover { background: var(--muted); color: var(--text); }
+  .icon-btn.danger:hover { background: #FFF0EE; border-color: #f5c5bd; color: var(--destructive); }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 7 — SETTINGS                                     */
+  /* ════════════════════════════════════════════════════════ */
+  .settings-layout { display: flex; gap: 28px; max-width: 860px; }
+  .settings-nav { width: 180px; flex-shrink: 0; }
+  .settings-nav-item { padding: 8px 12px; border-radius: 4px; font-size: 13.5px; cursor: pointer; color: var(--muted-text); font-weight: 500; }
+  .settings-nav-item:hover { background: var(--muted); color: var(--text); }
+  .settings-nav-item.active { background: #E9F2FF; color: var(--primary); }
+  .settings-body { flex: 1; }
+  .settings-section { margin-bottom: 28px; }
+  .settings-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .settings-section .desc { font-size: 13px; color: var(--muted-text); margin-bottom: 16px; }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row-label h4 { font-size: 13.5px; font-weight: 500; }
+  .settings-row-label p { font-size: 12px; color: var(--muted-text); margin-top: 2px; }
+  .color-swatch-row { display: flex; gap: 8px; }
+  .color-swatch { width: 30px; height: 30px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; }
+  .color-swatch.selected { border-color: var(--text); box-shadow: 0 0 0 2px #fff inset; }
+  .color-input-row { display: flex; align-items: center; gap: 10px; }
+  .color-preview { width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--border); }
+  .select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 13.5px; color: var(--text); background: #fff; }
+  .danger-zone { border: 1px solid #FFCFC8; border-radius: 6px; padding: 16px 18px; background: #FFF5F4; }
+  .danger-zone h3 { color: var(--destructive); font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .danger-zone p { font-size: 13px; color: #6E2218; margin-bottom: 14px; }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 8 — PROFILE                                      */
+  /* ════════════════════════════════════════════════════════ */
+  .profile-layout { max-width: 620px; }
+  .profile-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+  .profile-header-band { height: 80px; background: linear-gradient(135deg, #0C66E4 0%, #0039A6 100%); }
+  .profile-header-body { padding: 0 24px 20px; }
+  .profile-avatar-wrap { margin-top: -24px; margin-bottom: 12px; }
+  .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background: #A5BFFF; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary); }
+  .profile-name { font-size: 17px; font-weight: 700; }
+  .profile-email { font-size: 13px; color: var(--muted-text); }
+  .profile-code { display: inline-flex; align-items: center; gap: 4px; background: var(--muted); border-radius: 4px; padding: 2px 8px; font-size: 12px; color: var(--muted-text); margin-top: 6px; }
+  .prefs-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .prefs-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+  .prefs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* ════════════════════════════════════════════════════════ */
+  /* SCREEN 9 — ROLES                                        */
+  /* ════════════════════════════════════════════════════════ */
+  .role-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .role-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--muted); }
+  .role-card-title { display: flex; align-items: center; gap: 10px; }
+  .role-card-title h3 { font-size: 14px; font-weight: 600; }
+  .role-perms { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 18px; }
+  .perm-chip { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; font-size: 12px; background: var(--muted); border: 1px solid var(--border); color: var(--text); }
+  .perm-chip.active { background: #E9F2FF; border-color: #B8D4FF; color: var(--primary); }
+  .perm-chip input[type=checkbox] { accent-color: var(--primary); width: 13px; height: 13px; cursor: pointer; }
+
+  /* SVG icons inline */
+  .icon { width: 16px; height: 16px; display: inline-block; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<!-- ── SCREEN NAV ─────────────────────────────────── -->
+<nav class="nav" id="nav">
+  <button onclick="show('login')" class="active">① Login</button>
+  <button onclick="show('register')">② Register</button>
+  <button onclick="show('workspaces')">③ Workspace Selector</button>
+  <button onclick="show('board')">④ Board (Kanban)</button>
+  <button onclick="show('projects')">⑤ Projects</button>
+  <button onclick="show('members')">⑥ Members</button>
+  <button onclick="show('roles')">⑦ Roles</button>
+  <button onclick="show('settings')">⑧ Settings</button>
+  <button onclick="show('profile')">⑨ Profile</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 1 — LOGIN                                   -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="login" class="screen active" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 48px);">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">M</div>
+      <h1>MTAC</h1>
+      <p>Project management for modern teams</p>
+    </div>
+    <div class="auth-card">
+      <h2>Sign in to your account</h2>
+      <div class="form-group">
+        <label class="label">Email address</label>
+        <input class="input" type="email" placeholder="you@company.com" value="dileep@example.com" />
+      </div>
+      <div class="form-group">
+        <label class="label">Password</label>
+        <input class="input" type="password" placeholder="••••••••" value="password" />
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:9px 14px;margin-top:4px;">Sign in</button>
+      <div class="auth-footer">
+        Don't have an account? <a href="#">Create one</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 2 — REGISTER                               -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="register" class="screen" style="display:none;align-items:center;justify-content:center;min-height:calc(100vh - 48px);">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">M</div>
+      <h1>MTAC</h1>
+      <p>Create your account</p>
+    </div>
+    <div class="auth-card">
+      <h2>Get started for free</h2>
+      <div class="form-group">
+        <label class="label">Full name</label>
+        <input class="input" type="text" placeholder="Dileep Dunaboyina" value="Dileep Dunaboyina" />
+      </div>
+      <div class="form-group">
+        <label class="label">Email address</label>
+        <input class="input" type="email" placeholder="you@company.com" />
+      </div>
+      <div class="form-group">
+        <label class="label">Password</label>
+        <input class="input" type="password" placeholder="Min. 8 characters" />
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:9px 14px;margin-top:4px;">Create account</button>
+      <div class="auth-footer">
+        Already have an account? <a href="#">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 3 — WORKSPACE SELECTOR                     -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="workspaces" class="screen" style="display:none;">
+  <div class="ws-header">
+    <div class="logo"><div class="logo-mark">M</div> MTAC</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="avatar">DD</div>
+      <span style="font-size:13px;font-weight:500;">Dileep</span>
+    </div>
+  </div>
+  <div class="ws-body">
+    <h2>Your workspaces</h2>
+    <p>Select a workspace to continue or create a new one.</p>
+    <div class="ws-grid">
+      <div class="ws-card">
+        <div class="ws-card-icon" style="background:#0C66E4;">A</div>
+        <h3>Acme Corp</h3>
+        <p>8 members · 4 projects</p>
+        <p style="margin-top:6px;color:#626F86;font-size:11px;">Admin</p>
+      </div>
+      <div class="ws-card">
+        <div class="ws-card-icon" style="background:#6554C0;">S</div>
+        <h3>Side Project</h3>
+        <p>2 members · 1 project</p>
+        <p style="margin-top:6px;color:#626F86;font-size:11px;">Admin</p>
+      </div>
+      <div class="ws-card">
+        <div class="ws-card-icon" style="background:#00875A;">F</div>
+        <h3>Freelance Hub</h3>
+        <p>5 members · 3 projects</p>
+        <p style="margin-top:6px;color:#626F86;font-size:11px;">Manager</p>
+      </div>
+      <div class="ws-card ws-new">
+        <div class="ws-card-icon" style="background:var(--muted);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#626F86" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <h3 style="color:#626F86;">Create workspace</h3>
+        <p>Set up a new team space</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 4 — BOARD                                  -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="board" class="screen" style="display:none;">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-ws-icon">A</div>
+        <span class="sidebar-ws-name">Acme Corp</span>
+        <span class="sidebar-ws-chevron">⌄</span>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Planning</div>
+        <div class="sidebar-item active">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="12"/></svg>
+          Board
+        </div>
+        <div class="sidebar-item">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          Projects
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workspace</div>
+        <div class="sidebar-item">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Members
+        </div>
+        <div class="sidebar-item">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Roles
+        </div>
+        <div class="sidebar-item">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 115 19.07"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-item">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Profile
+        </div>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-breadcrumb"><span style="color:var(--muted-text)">Acme Corp</span> <span>›</span> <span style="font-weight:600;color:var(--text)">Board</span></div>
+        <div class="topbar-right">
+          <div class="avatar" style="font-size:10px;">DD</div>
+        </div>
+      </div>
+      <div class="topbar-tabs">
+        <div class="topbar-tab active">Board</div>
+        <div class="topbar-tab">List</div>
+        <div class="topbar-tab">Timeline</div>
+      </div>
+      <div class="content">
+        <div class="board-filters">
+          <input class="search-input" placeholder="🔍  Search tasks…" />
+          <button class="btn btn-ghost btn-sm">Filter</button>
+          <div style="margin-left:auto;">
+            <button class="btn btn-primary btn-sm">+ Create task</button>
+          </div>
+        </div>
+        <div class="board-cols">
+          <!-- TODO -->
+          <div class="board-col">
+            <div class="col-header">
+              <div style="width:10px;height:10px;border-radius:50%;background:#626F86;"></div>
+              <span class="col-title">To Do</span>
+              <span class="col-count">3</span>
+            </div>
+            <div class="col-cards">
+              <div class="task-card">
+                <div class="task-card-title">Set up CI/CD pipeline for staging environment</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-todo">To do</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-7</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="task-card-priority"><div class="priority-dot priority-high"></div></div>
+                    <div class="avatar" style="width:20px;height:20px;font-size:8px;">DD</div>
+                  </div>
+                </div>
+              </div>
+              <div class="task-card">
+                <div class="task-card-title">Write unit tests for auth module</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-todo">To do</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-8</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="task-card-priority"><div class="priority-dot priority-med"></div></div>
+                    <div class="avatar" style="width:20px;height:20px;font-size:8px;background:#6554C0;">RK</div>
+                  </div>
+                </div>
+              </div>
+              <div class="task-card">
+                <div class="task-card-title">Migrate database to MongoDB Atlas</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-todo">To do</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-9</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="task-card-priority"><div class="priority-dot priority-low"></div></div>
+                    <div class="avatar" style="width:20px;height:20px;font-size:8px;background:#00875A;">SK</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="add-card-btn">+ Add task</button>
+          </div>
+          <!-- IN PROGRESS -->
+          <div class="board-col">
+            <div class="col-header">
+              <div style="width:10px;height:10px;border-radius:50%;background:#0C66E4;"></div>
+              <span class="col-title">In Progress</span>
+              <span class="col-count">2</span>
+            </div>
+            <div class="col-cards">
+              <div class="task-card" style="border-left:3px solid #0C66E4;">
+                <div class="task-card-title">Build RBAC permission middleware</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-progress">In Progress</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-4</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="task-card-priority"><div class="priority-dot priority-high"></div></div>
+                    <div class="avatar" style="width:20px;height:20px;font-size:8px;">DD</div>
+                  </div>
+                </div>
+              </div>
+              <div class="task-card" style="border-left:3px solid #0C66E4;">
+                <div class="task-card-title">Design workspace settings UI</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-progress">In Progress</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-5</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="task-card-priority"><div class="priority-dot priority-med"></div></div>
+                    <div class="avatar" style="width:20px;height:20px;font-size:8px;background:#6554C0;">RK</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="add-card-btn">+ Add task</button>
+          </div>
+          <!-- DONE -->
+          <div class="board-col">
+            <div class="col-header">
+              <div style="width:10px;height:10px;border-radius:50%;background:#22A06B;"></div>
+              <span class="col-title">Done</span>
+              <span class="col-count">4</span>
+            </div>
+            <div class="col-cards">
+              <div class="task-card" style="opacity:0.75;">
+                <div class="task-card-title">Set up Express API project structure</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-done">Done</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-1</span>
+                  <div class="avatar" style="width:20px;height:20px;font-size:8px;">DD</div>
+                </div>
+              </div>
+              <div class="task-card" style="opacity:0.75;">
+                <div class="task-card-title">Implement JWT authentication flow</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-done">Done</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-2</span>
+                  <div class="avatar" style="width:20px;height:20px;font-size:8px;">DD</div>
+                </div>
+              </div>
+              <div class="task-card" style="opacity:0.75;">
+                <div class="task-card-title">Create workspace member hierarchy model</div>
+                <div style="margin-bottom:8px;"><span class="badge badge-done">Done</span></div>
+                <div class="task-card-meta">
+                  <span class="task-card-id">KAN-3</span>
+                  <div class="avatar" style="width:20px;height:20px;font-size:8px;background:#00875A;">SK</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 5 — PROJECTS                               -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="projects" class="screen" style="display:none;">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-ws-icon">A</div><span class="sidebar-ws-name">Acme Corp</span><span class="sidebar-ws-chevron">⌄</span></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Planning</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="12"/></svg>Board</div>
+        <div class="sidebar-item active"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Projects</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workspace</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Members</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Roles</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+      </div>
+      <div class="sidebar-bottom"><div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-breadcrumb"><span style="color:var(--muted-text)">Acme Corp</span> <span>›</span> <span style="font-weight:600;color:var(--text)">Projects</span></div>
+        <div class="topbar-right"><button class="btn btn-primary btn-sm">+ New project</button></div>
+      </div>
+      <div class="content">
+        <div class="projects-grid">
+          <div class="project-card">
+            <div class="project-card-header">
+              <div class="project-icon" style="background:#0C66E4;">B</div>
+              <span style="font-size:11px;color:var(--muted-text);">8 tasks</span>
+            </div>
+            <h3 style="margin:10px 0 4px;">Backend API</h3>
+            <p>Core REST API with RBAC, workspace management and task tracking.</p>
+            <div class="progress-bar"><div class="progress-fill" style="width:65%;"></div></div>
+            <div class="project-card-footer">
+              <span style="font-size:12px;color:var(--muted-text);">65% complete</span>
+              <div class="member-stack">
+                <div class="avatar">DD</div>
+                <div class="avatar" style="background:#6554C0;">RK</div>
+                <div class="avatar" style="background:#00875A;">SK</div>
+              </div>
+            </div>
+          </div>
+          <div class="project-card">
+            <div class="project-card-header">
+              <div class="project-icon" style="background:#6554C0;">U</div>
+              <span style="font-size:11px;color:var(--muted-text);">5 tasks</span>
+            </div>
+            <h3 style="margin:10px 0 4px;">UI Dashboard</h3>
+            <p>React frontend with Jira-style kanban board and workspace theming.</p>
+            <div class="progress-bar"><div class="progress-fill" style="width:20%;"></div></div>
+            <div class="project-card-footer">
+              <span style="font-size:12px;color:var(--muted-text);">20% complete</span>
+              <div class="member-stack">
+                <div class="avatar">DD</div>
+                <div class="avatar" style="background:#6554C0;">RK</div>
+              </div>
+            </div>
+          </div>
+          <div class="project-card">
+            <div class="project-card-header">
+              <div class="project-icon" style="background:#00875A;">D</div>
+              <span style="font-size:11px;color:var(--muted-text);">3 tasks</span>
+            </div>
+            <h3 style="margin:10px 0 4px;">DevOps</h3>
+            <p>CI/CD pipeline, Docker setup and cloud deployment configuration.</p>
+            <div class="progress-bar"><div class="progress-fill" style="width:10%;"></div></div>
+            <div class="project-card-footer">
+              <span style="font-size:12px;color:var(--muted-text);">10% complete</span>
+              <div class="member-stack">
+                <div class="avatar" style="background:#00875A;">SK</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 6 — MEMBERS                                -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="members" class="screen" style="display:none;">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-ws-icon">A</div><span class="sidebar-ws-name">Acme Corp</span><span class="sidebar-ws-chevron">⌄</span></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Planning</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="12"/></svg>Board</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Projects</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workspace</div>
+        <div class="sidebar-item active"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Members</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Roles</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+      </div>
+      <div class="sidebar-bottom"><div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-breadcrumb"><span style="color:var(--muted-text)">Acme Corp</span> <span>›</span> <span style="font-weight:600;color:var(--text)">Members</span></div>
+        <div class="topbar-right"><button class="btn btn-primary btn-sm">+ Add member</button></div>
+      </div>
+      <div class="content">
+        <div class="card" style="overflow:hidden;">
+          <table class="table">
+            <thead>
+              <tr><th>Member</th><th>Role</th><th>Joined</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="member-cell"><div class="avatar">DD</div><div class="member-info"><h4>Dileep Dunaboyina</h4><p>dileep@example.com</p></div></div></td>
+                <td><span class="badge badge-admin">Admin</span></td>
+                <td style="color:var(--muted-text);">Apr 1, 2026</td>
+                <td><span style="color:var(--muted-text);font-size:12px;">Owner</span></td>
+              </tr>
+              <tr>
+                <td><div class="member-cell"><div class="avatar" style="background:#6554C0;">RK</div><div class="member-info"><h4>Rahul Kumar</h4><p>rahul@example.com</p></div></div></td>
+                <td><span class="badge badge-manager">Manager</span></td>
+                <td style="color:var(--muted-text);">Apr 5, 2026</td>
+                <td><div class="table-actions"><button class="icon-btn" title="Change role">✎</button><button class="icon-btn danger" title="Remove">✕</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="member-cell"><div class="avatar" style="background:#00875A;">SK</div><div class="member-info"><h4>Sanjay Kumar</h4><p>sanjay@example.com</p></div></div></td>
+                <td><span class="badge badge-member">Member</span></td>
+                <td style="color:var(--muted-text);">Apr 8, 2026</td>
+                <td><div class="table-actions"><button class="icon-btn" title="Change role">✎</button><button class="icon-btn danger" title="Remove">✕</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="member-cell"><div class="avatar" style="background:#FF991F;">AP</div><div class="member-info"><h4>Arjun Patel</h4><p>arjun@example.com</p></div></div></td>
+                <td><span class="badge badge-member">Member</span></td>
+                <td style="color:var(--muted-text);">Apr 10, 2026</td>
+                <td><div class="table-actions"><button class="icon-btn" title="Change role">✎</button><button class="icon-btn danger" title="Remove">✕</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 7 — ROLES                                  -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="roles" class="screen" style="display:none;">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-ws-icon">A</div><span class="sidebar-ws-name">Acme Corp</span><span class="sidebar-ws-chevron">⌄</span></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Planning</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="12"/></svg>Board</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Projects</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workspace</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Members</div>
+        <div class="sidebar-item active"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Roles</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+      </div>
+      <div class="sidebar-bottom"><div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-breadcrumb"><span style="color:var(--muted-text)">Acme Corp</span> <span>›</span> <span style="font-weight:600;color:var(--text)">Roles & Permissions</span></div>
+      </div>
+      <div class="content">
+        <p style="font-size:13px;color:var(--muted-text);margin-bottom:20px;">Manage what each role can do in this workspace. Only admins can modify roles below their level.</p>
+        <!-- Admin -->
+        <div class="role-card">
+          <div class="role-card-header">
+            <div class="role-card-title"><span class="badge badge-admin">Admin</span><span style="font-size:12px;color:var(--muted-text);">Level 0 · All permissions</span></div>
+            <span style="font-size:12px;color:var(--muted-text);">Cannot be modified</span>
+          </div>
+          <div class="role-perms">
+            <span class="perm-chip active"><input type="checkbox" checked disabled /> VIEW_WORKSPACE</span>
+            <span class="perm-chip active"><input type="checkbox" checked disabled /> DELETE_WORKSPACE</span>
+            <span class="perm-chip active"><input type="checkbox" checked disabled /> UPDATE_WORKSPACE</span>
+            <span class="perm-chip active"><input type="checkbox" checked disabled /> MANAGE_MEMBERS</span>
+            <span class="perm-chip active"><input type="checkbox" checked disabled /> CHANGE_ROLE</span>
+            <span class="perm-chip active"><input type="checkbox" checked disabled /> CREATE_PROJECT</span>
+            <span class="perm-chip active"><input type="checkbox" checked disabled /> ALL PERMISSIONS</span>
+          </div>
+        </div>
+        <!-- Manager -->
+        <div class="role-card">
+          <div class="role-card-header">
+            <div class="role-card-title"><span class="badge badge-manager">Manager</span><span style="font-size:12px;color:var(--muted-text);">Level 1 · 11 permissions</span></div>
+            <button class="btn btn-primary btn-sm">Save changes</button>
+          </div>
+          <div class="role-perms">
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_WORKSPACE</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_MEMBERS</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> CREATE_PROJECT</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> UPDATE_PROJECT</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> DELETE_PROJECT</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_PROJECT</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> CREATE_TASK</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> UPDATE_TASK</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> DELETE_TASK</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_TASK</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> ASSIGN_TASK</span>
+            <span class="perm-chip"><input type="checkbox" /> ADD_MEMBER</span>
+            <span class="perm-chip"><input type="checkbox" /> REMOVE_MEMBER</span>
+          </div>
+        </div>
+        <!-- Member -->
+        <div class="role-card">
+          <div class="role-card-header">
+            <div class="role-card-title"><span class="badge badge-member">Member</span><span style="font-size:12px;color:var(--muted-text);">Level 2 · 4 permissions</span></div>
+            <button class="btn btn-primary btn-sm">Save changes</button>
+          </div>
+          <div class="role-perms">
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_WORKSPACE</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_MEMBERS</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_PROJECT</span>
+            <span class="perm-chip active"><input type="checkbox" checked /> VIEW_TASK</span>
+            <span class="perm-chip"><input type="checkbox" /> CREATE_TASK</span>
+            <span class="perm-chip"><input type="checkbox" /> UPDATE_TASK</span>
+            <span class="perm-chip"><input type="checkbox" /> ASSIGN_TASK</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 8 — SETTINGS                               -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="settings" class="screen" style="display:none;">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-ws-icon">A</div><span class="sidebar-ws-name">Acme Corp</span><span class="sidebar-ws-chevron">⌄</span></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Planning</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="12"/></svg>Board</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Projects</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workspace</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Members</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Roles</div>
+        <div class="sidebar-item active"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+      </div>
+      <div class="sidebar-bottom"><div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-breadcrumb"><span style="color:var(--muted-text)">Acme Corp</span> <span>›</span> <span style="font-weight:600;color:var(--text)">Settings</span></div>
+        <div class="topbar-right"><button class="btn btn-primary btn-sm">Save changes</button></div>
+      </div>
+      <div class="content">
+        <div class="settings-layout">
+          <div class="settings-nav">
+            <div class="settings-nav-item active">General</div>
+            <div class="settings-nav-item">Appearance</div>
+            <div class="settings-nav-item">Locale</div>
+            <div class="settings-nav-item" style="color:#CA3521;">Danger Zone</div>
+          </div>
+          <div class="settings-body">
+            <!-- General -->
+            <div class="settings-section">
+              <h3>General</h3>
+              <p class="desc">Basic workspace information.</p>
+              <div class="settings-row">
+                <div class="settings-row-label"><h4>Workspace name</h4><p>Visible to all members</p></div>
+                <input class="input" style="width:220px;" value="Acme Corp" />
+              </div>
+            </div>
+            <!-- Appearance -->
+            <div class="settings-section">
+              <h3>Appearance</h3>
+              <p class="desc">Customize colors and font for this workspace.</p>
+              <div class="settings-row">
+                <div class="settings-row-label"><h4>Primary color</h4><p>Buttons, links, active states</p></div>
+                <div class="color-input-row">
+                  <div class="color-preview" style="background:#0C66E4;"></div>
+                  <div class="color-swatch-row">
+                    <div class="color-swatch selected" style="background:#0C66E4;" title="#0C66E4"></div>
+                    <div class="color-swatch" style="background:#6554C0;" title="#6554C0"></div>
+                    <div class="color-swatch" style="background:#00875A;" title="#00875A"></div>
+                    <div class="color-swatch" style="background:#FF5630;" title="#FF5630"></div>
+                    <div class="color-swatch" style="background:#FF991F;" title="#FF991F"></div>
+                    <div class="color-swatch" style="background:#172B4D;" title="#172B4D"></div>
+                  </div>
+                  <input class="input" style="width:96px;font-size:13px;" value="#0C66E4" />
+                </div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-label"><h4>Sidebar color</h4><p>Background of the left navigation</p></div>
+                <div class="color-input-row">
+                  <div class="color-preview" style="background:#1D2125;"></div>
+                  <div class="color-swatch-row">
+                    <div class="color-swatch selected" style="background:#1D2125;"></div>
+                    <div class="color-swatch" style="background:#0039A6;"></div>
+                    <div class="color-swatch" style="background:#1B3A2D;"></div>
+                    <div class="color-swatch" style="background:#3D1F6E;"></div>
+                    <div class="color-swatch" style="background:#4A1010;"></div>
+                    <div class="color-swatch" style="background:#2E2E2E;"></div>
+                  </div>
+                  <input class="input" style="width:96px;font-size:13px;" value="#1D2125" />
+                </div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-label"><h4>Font</h4><p>Applied across the whole workspace</p></div>
+                <select class="select">
+                  <option selected>Inter</option>
+                  <option>Roboto</option>
+                  <option>System default</option>
+                </select>
+              </div>
+            </div>
+            <!-- Locale -->
+            <div class="settings-section">
+              <h3>Locale</h3>
+              <p class="desc">Regional formatting preferences.</p>
+              <div class="settings-row">
+                <div class="settings-row-label"><h4>Timezone</h4><p>Used for due dates and activity logs</p></div>
+                <select class="select" style="width:200px;">
+                  <option>UTC</option>
+                  <option selected>Asia/Kolkata (IST)</option>
+                  <option>America/New_York (EST)</option>
+                  <option>Europe/London (GMT)</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-label"><h4>Date format</h4></div>
+                <select class="select">
+                  <option selected>MM/DD/YYYY</option>
+                  <option>DD/MM/YYYY</option>
+                  <option>YYYY-MM-DD</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-label"><h4>Language</h4></div>
+                <select class="select">
+                  <option selected>English</option>
+                </select>
+              </div>
+            </div>
+            <!-- Danger Zone -->
+            <div class="danger-zone">
+              <h3>⚠ Danger Zone</h3>
+              <p>Deleting the workspace permanently removes all projects, tasks, members and roles. This cannot be undone. Only the workspace owner can do this.</p>
+              <button class="btn btn-danger btn-sm">Delete workspace</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- SCREEN 9 — PROFILE                                -->
+<!-- ══════════════════════════════════════════════════ -->
+<div id="profile" class="screen" style="display:none;">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-ws-icon">A</div><span class="sidebar-ws-name">Acme Corp</span><span class="sidebar-ws-chevron">⌄</span></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Planning</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="12"/></svg>Board</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Projects</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workspace</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Members</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Roles</div>
+        <div class="sidebar-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+      </div>
+      <div class="sidebar-bottom"><div class="sidebar-item active"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-breadcrumb"><span style="font-weight:600;color:var(--text)">My Profile</span></div>
+      </div>
+      <div class="content">
+        <div class="profile-layout">
+          <div class="profile-card">
+            <div class="profile-header-band"></div>
+            <div class="profile-header-body">
+              <div class="profile-avatar-wrap">
+                <div class="profile-avatar">DD</div>
+              </div>
+              <div class="profile-name">Dileep Dunaboyina</div>
+              <div class="profile-email">dileep@example.com</div>
+              <div class="profile-code"># USR-0001</div>
+            </div>
+          </div>
+          <!-- Edit profile -->
+          <div class="prefs-card" style="margin-bottom:16px;">
+            <h3>Edit profile</h3>
+            <div class="form-group">
+              <label class="label">Full name</label>
+              <input class="input" value="Dileep Dunaboyina" />
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:4px;">Save</button>
+          </div>
+          <!-- Preferences -->
+          <div class="prefs-card" style="margin-bottom:16px;">
+            <h3>My preferences</h3>
+            <div class="prefs-grid">
+              <div class="form-group">
+                <label class="label">Theme</label>
+                <select class="select" style="width:100%;">
+                  <option selected>Light</option>
+                  <option>Dark</option>
+                  <option>System</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label">Timezone</label>
+                <select class="select" style="width:100%;">
+                  <option selected>Asia/Kolkata (IST)</option>
+                  <option>UTC</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label">Date format</label>
+                <select class="select" style="width:100%;">
+                  <option selected>MM/DD/YYYY</option>
+                  <option>DD/MM/YYYY</option>
+                  <option>YYYY-MM-DD</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="label">Language</label>
+                <select class="select" style="width:100%;">
+                  <option selected>English</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:8px;">Save preferences</button>
+          </div>
+          <!-- Change password -->
+          <div class="prefs-card">
+            <h3>Change password</h3>
+            <div class="form-group" style="margin-top:12px;">
+              <label class="label">Current password</label>
+              <input class="input" type="password" placeholder="••••••••" />
+            </div>
+            <div class="form-group">
+              <label class="label">New password</label>
+              <input class="input" type="password" placeholder="Min. 8 characters" />
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:4px;">Update password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    const el = document.getElementById(id);
+    // flex screens
+    const flexScreens = ['login','register'];
+    el.style.display = flexScreens.includes(id) ? 'flex' : 'block';
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>

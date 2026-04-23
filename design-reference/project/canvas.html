@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MTAC — Canvas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { font-family: "Geist", ui-sans-serif, system-ui, sans-serif; background: #f6f6f5; color: #1a1a1a; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel">
+/* global DesignCanvas, DCSection, DCArtboard */
+
+const iframe = (src) => (
+  <iframe src={src} style={{ width: "100%", height: "100%", border: "none", background: "#fff" }}/>
+);
+
+const App = () => (
+  <DesignCanvas title="MTAC — All screens">
+    <DCSection id="auth" title="Auth">
+      <DCArtboard id="login"    label="Login"    width={1280} height={800}>{iframe("mtac.html#login")}</DCArtboard>
+      <DCArtboard id="register" label="Register" width={1280} height={800}>{iframe("mtac.html#register")}</DCArtboard>
+      <DCArtboard id="forgot"   label="Forgot password" width={1280} height={800}>{iframe("mtac.html#forgot")}</DCArtboard>
+    </DCSection>
+
+    <DCSection id="home" title="Dashboard">
+      <DCArtboard id="dash-overview" label="Overview"     width={1440} height={900}>{iframe("mtac.html#dashboard")}</DCArtboard>
+      <DCArtboard id="dash-focus"    label="Focus (v2)"   width={1440} height={900}>{iframe("mtac.html#dashboard-focus")}</DCArtboard>
+    </DCSection>
+
+    <DCSection id="workspace" title="Workspace & Project">
+      <DCArtboard id="ws"          label="Workspace"      width={1440} height={900}>{iframe("mtac.html#workspace")}</DCArtboard>
+      <DCArtboard id="kanban"      label="Kanban · cards" width={1440} height={900}>{iframe("mtac.html#project")}</DCArtboard>
+      <DCArtboard id="kanban-c"    label="Kanban · compact" width={1440} height={900}>{iframe("mtac.html#project-compact")}</DCArtboard>
+      <DCArtboard id="list"        label="List view"      width={1440} height={900}>{iframe("mtac.html#project-list")}</DCArtboard>
+    </DCSection>
+
+    <DCSection id="task" title="Task">
+      <DCArtboard id="task-modal" label="Task detail modal" width={1440} height={900}>{iframe("mtac.html#task-open")}</DCArtboard>
+    </DCSection>
+
+    <DCSection id="team" title="Members & Settings">
+      <DCArtboard id="members"  label="Members"             width={1440} height={900}>{iframe("mtac.html#members")}</DCArtboard>
+      <DCArtboard id="roles"    label="Roles & permissions" width={1440} height={900}>{iframe("mtac.html#roles")}</DCArtboard>
+      <DCArtboard id="settings" label="Profile settings"    width={1440} height={900}>{iframe("mtac.html#settings")}</DCArtboard>
+      <DCArtboard id="kbd"      label="Keyboard shortcuts"  width={1440} height={900}>{iframe("mtac.html#keyboard")}</DCArtboard>
+    </DCSection>
+
+    <DCSection id="cmdk" title="Command palette">
+      <DCArtboard id="cmdk-open" label="⌘K open" width={1440} height={900}>{iframe("mtac.html#cmdk")}</DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
