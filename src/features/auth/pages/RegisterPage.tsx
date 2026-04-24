@@ -42,6 +42,10 @@ export default function RegisterPage() {
       await registerApi({ name, email, password });
       navigate("/verify-email", { state: { email } });
     } catch (err: any) {
+      if (err?.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+        navigate("/verify-email", { state: { email } });
+        return;
+      }
       const firstDetail = err?.response?.data?.errors?.[0]?.message;
       setError(firstDetail ?? err?.response?.data?.message ?? "Registration failed. Please try again.");
     } finally {
