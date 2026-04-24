@@ -47,13 +47,15 @@ function mapMyTask(t: any): Task {
   };
 }
 
-// This week — still static (no calendar backend endpoint)
-// TODO Phase 12+: replace with GET /workspace/:id/tasks?due_after=today&due_before=week_end
-const MOCK_THIS_WEEK = [
-  { day: "WED", date: "12", title: "Launch email sequence QA", time: "10:00" },
-  { day: "THU", date: "13", title: "Press release review",     time: "14:30" },
-  { day: "FRI", date: "14", title: "Q4 launch go/no-go",       time: "16:00" },
-];
+function getWeekRange() {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(now);
+  end.setDate(end.getDate() + (7 - end.getDay()));
+  end.setHours(23, 59, 59, 999);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
 
 export function Overview() {
   const { slug }  = useParams<{ slug: string }>();
@@ -86,6 +88,14 @@ export function Overview() {
     queryFn: () => getMyTasksApi(workspace!._id, "todo,in_progress"),
     enabled: !!workspace,
     staleTime: 30_000,
+  });
+
+  const weekRange = getWeekRange();
+  const { data: weekTasksRaw = [] } = useQuery({
+    queryKey: ["week-tasks", workspace?._id],
+    queryFn: () => getMyTasksApi(workspace!._id, undefined, weekRange.start, weekRange.end),
+    enabled: !!workspace,
+    staleTime: 60_000,
   });
 
   const projects  = projectData?.data ?? [];
@@ -212,22 +222,29 @@ export function Overview() {
             </div>
           </div>
 
-          {/* This week — static until calendar backend is added */}
+          {/* Due this week */}
           <div>
-            <div style={{ fontSize: 11.5, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: 0.3, marginBottom: 10 }}>This week</div>
+            <div style={{ fontSize: 11.5, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: 0.3, marginBottom: 10 }}>Due this week</div>
             <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", background: "var(--bg-2)", padding: 6 }}>
-              {MOCK_THIS_WEEK.map((e, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px" }}>
-                  <div style={{ width: 36, textAlign: "center", padding: "4px 0", background: "var(--bg-sub)", borderRadius: 5, border: "1px solid var(--border)", flexShrink: 0 }}>
-                    <div className="mono" style={{ color: "var(--text-3)", fontSize: 9.5 }}>{e.day}</div>
-                    <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1 }}>{e.date}</div>
+              {weekTasksRaw.length === 0 ? (
+                <div style={{ padding: "16px", textAlign: "center", color: "var(--text-3)", fontSize: 12 }}>No tasks due this week.</div>
+              ) : weekTasksRaw.map((t: any) => {
+                const due = new Date(t.due);
+                return (
+                  <div key={t._id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px" }}>
+                    <div style={{ width: 36, textAlign: "center", padding: "4px 0", background: "var(--bg-sub)", borderRadius: 5, border: "1px solid var(--border)", flexShrink: 0 }}>
+                      <div className="mono" style={{ color: "var(--text-3)", fontSize: 9.5 }}>
+                        {due.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()}
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1 }}>{due.getDate()}</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
+                      <span className="mono" style={{ color: "var(--text-3)", fontSize: 10 }}>{t.key}</span>
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5 }}>{e.title}</div>
-                    <div className="mono" style={{ color: "var(--text-3)" }}>{e.time}</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

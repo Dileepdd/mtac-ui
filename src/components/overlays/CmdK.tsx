@@ -5,8 +5,10 @@ import { useCmdkStore } from "@/stores/cmdkStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useTaskModalStore } from "@/stores/taskModalStore";
 import { listProjectsApi } from "@/api/project";
+import { getMyTasksApi } from "@/api/workspace";
 import { applyTheme } from "@/config/colors";
 import { ProjectGlyph } from "@/components/shared/ProjectGlyph";
+import { StatusDot } from "@/icons";
 import { I } from "@/icons";
 import { idToColor, deriveKey } from "./cmdk-utils";
 
@@ -46,13 +48,19 @@ export function CmdK() {
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [open]);
 
-  // Projects from cache
   const { data } = useQuery({
     queryKey: ["projects", workspace?._id],
     queryFn: () => listProjectsApi(workspace!._id),
     enabled: !!workspace,
   });
   const projects = data?.data ?? [];
+
+  const { data: recentTasksRaw = [] } = useQuery({
+    queryKey: ["my-tasks-recent", workspace?._id],
+    queryFn: () => getMyTasksApi(workspace!._id, "todo,in_progress"),
+    enabled: !!workspace && open,
+    staleTime: 30_000,
+  });
 
   // Build item list
   const base: CmdItem[] = useMemo(() => {
@@ -79,12 +87,30 @@ export function CmdK() {
       run: () => navigate(`/w/${wsSlug}/p/${p._id}`),
     }));
 
-    // TODO Phase 12: replace stub tasks with real recent assigned tasks query
-    // GET /workspace/:id/tasks?assigned_to=me&sort=updated_at&limit=6
-    const taskItems: CmdItem[] = [];
+    const taskItems: CmdItem[] = recentTasksRaw.slice(0, 6).map((t: any) => ({
+      type: "task" as const,
+      label: t.title,
+      hint: t.key ?? "",
+      icon: <StatusDot status={t.status} size={12} />,
+      run: () => openTask({
+        _id:          String(t._id),
+        key:          t.key ?? "—",
+        title:        t.title,
+        description:  t.description,
+        status:       t.status,
+        priority:     t.priority ?? "med",
+        assigned_to:  t.assigned_to,
+        project_id:   String(t.project_id),
+        workspace_id: String(t.workspace_id),
+        labels:       t.labels ?? [],
+        due:          t.due ? new Date(t.due).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : undefined,
+        created_at:   t.created_at,
+        updated_at:   t.updated_at,
+      }),
+    }));
 
     return [...nav, ...actions, ...projectItems, ...taskItems];
-  }, [slug, workspace, projects, navigate, openTask]);
+  }, [slug, workspace, projects, recentTasksRaw, navigate, openTask]);
 
   const items = useMemo(() => {
     if (!q) return base;

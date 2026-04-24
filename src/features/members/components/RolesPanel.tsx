@@ -1,44 +1,68 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { updateRolePermissionsApi, type RoleItem } from "@/api/role";
+import { listPermissionsApi } from "@/api/permission";
 import { Tag } from "@/components/shared/Tag";
 import { Btn } from "@/components/shared/Btn";
 import { I } from "@/icons";
 
-// Hardcoded permission catalogue — mirrors the backend PermissionModel seeder
-// TODO backend: expose GET /permissions endpoint so this can be dynamic
-const PERMISSION_GROUPS = [
-  { group: "Workspace", items: [
-    { key: "VIEW_WORKSPACE",   label: "View workspace details"  },
-    { key: "UPDATE_WORKSPACE", label: "Update workspace settings" },
-    { key: "DELETE_WORKSPACE", label: "Delete workspace"         },
-  ]},
-  { group: "Members", items: [
-    { key: "VIEW_MEMBERS",       label: "List all members"          },
-    { key: "ADD_MEMBER",         label: "Invite new members"        },
-    { key: "REMOVE_MEMBER",      label: "Remove members"            },
-    { key: "UPDATE_MEMBER_ROLE", label: "Change a member's role"    },
-  ]},
-  { group: "Roles", items: [
-    { key: "ASSIGN_ROLE", label: "Assign role when adding members" },
-    { key: "CHANGE_ROLE", label: "Modify role permissions"         },
-  ]},
-  { group: "Projects", items: [
-    { key: "CREATE_PROJECT", label: "Create projects"   },
-    { key: "VIEW_PROJECT",   label: "View projects"     },
-    { key: "UPDATE_PROJECT", label: "Update projects"   },
-    { key: "DELETE_PROJECT", label: "Delete projects"   },
-  ]},
-  { group: "Tasks", items: [
-    { key: "CREATE_TASK", label: "Create tasks"          },
-    { key: "VIEW_TASK",   label: "View task details"     },
-    { key: "UPDATE_TASK", label: "Update tasks"          },
-    { key: "DELETE_TASK", label: "Delete tasks"          },
-    { key: "ASSIGN_TASK", label: "Assign tasks to members" },
-  ]},
-];
+const PERM_LABELS: Record<string, string> = {
+  VIEW_WORKSPACE:     "View workspace details",
+  UPDATE_WORKSPACE:   "Update workspace settings",
+  DELETE_WORKSPACE:   "Delete workspace",
+  VIEW_MEMBERS:       "List all members",
+  ADD_MEMBER:         "Invite new members",
+  REMOVE_MEMBER:      "Remove members",
+  UPDATE_MEMBER_ROLE: "Change a member's role",
+  ASSIGN_ROLE:        "Assign role when adding members",
+  CHANGE_ROLE:        "Modify role permissions",
+  CREATE_PROJECT:     "Create projects",
+  VIEW_PROJECT:       "View projects",
+  UPDATE_PROJECT:     "Update projects",
+  DELETE_PROJECT:     "Delete projects",
+  CREATE_TASK:        "Create tasks",
+  VIEW_TASK:          "View task details",
+  UPDATE_TASK:        "Update tasks",
+  DELETE_TASK:        "Delete tasks",
+  ASSIGN_TASK:        "Assign tasks to members",
+};
+
+const GROUP_OVERRIDE: Record<string, string> = {
+  UPDATE_MEMBER_ROLE: "Members",
+  ADD_MEMBER:         "Members",
+  REMOVE_MEMBER:      "Members",
+  VIEW_MEMBERS:       "Members",
+  ASSIGN_ROLE:        "Roles",
+  CHANGE_ROLE:        "Roles",
+};
+
+const RESOURCE_GROUP: Record<string, string> = {
+  WORKSPACE: "Workspace",
+  PROJECT:   "Projects",
+  TASK:      "Tasks",
+  MEMBER:    "Members",
+  ROLE:      "Roles",
+};
+
+const GROUP_ORDER = ["Workspace", "Members", "Roles", "Projects", "Tasks"];
+
+function buildGroups(names: string[]) {
+  const map: Record<string, { key: string; label: string }[]> = {};
+  for (const name of names) {
+    const groupName =
+      GROUP_OVERRIDE[name] ??
+      RESOURCE_GROUP[name.split("_").at(-1) ?? ""] ??
+      "Other";
+    if (!map[groupName]) map[groupName] = [];
+    const label = PERM_LABELS[name] ?? name.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
+    map[groupName].push({ key: name, label });
+  }
+  const ordered = GROUP_ORDER.filter((g) => map[g]).map((g) => ({ group: g, items: map[g] }));
+  const rest = Object.keys(map).filter((g) => !GROUP_ORDER.includes(g)).map((g) => ({ group: g, items: map[g] }));
+  return [...ordered, ...rest];
+}
 
 interface RolesPanelProps {
   roles: RoleItem[];
@@ -48,6 +72,13 @@ interface RolesPanelProps {
 export function RolesPanel({ roles, onRolesChange }: RolesPanelProps) {
   const workspace   = useWorkspaceStore((s) => s.workspace);
   const queryClient = useQueryClient();
+
+  const { data: rawPerms = [] } = useQuery({
+    queryKey: ["permissions"],
+    queryFn: listPermissionsApi,
+    staleTime: Infinity,
+  });
+  const permissionGroups = buildGroups(rawPerms.map((p) => p.name));
 
   const [selectedId, setSelectedId] = useState(roles[0]?._id ?? "");
   const [saving, setSaving]         = useState(false);
@@ -165,7 +196,7 @@ export function RolesPanel({ roles, onRolesChange }: RolesPanelProps) {
         </div>
 
         <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 18 }}>
-          {PERMISSION_GROUPS.map((g) => (
+          {permissionGroups.map((g) => (
             <div key={g.group}>
               <div className="mono" style={{ color: "var(--text-3)", textTransform: "uppercase", marginBottom: 8, letterSpacing: 0.3, fontSize: 10.5 }}>
                 {g.group}

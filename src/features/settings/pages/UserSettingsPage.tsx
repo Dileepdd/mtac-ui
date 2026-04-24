@@ -1,7 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
-import { updateProfileApi, updatePasswordApi } from "@/api/user";
+import {
+  updateProfileApi, updatePasswordApi,
+  updatePreferencesApi, updateAvatarApi, deleteAccountApi,
+  listTokensApi, createTokenApi, revokeTokenApi,
+  type NotificationPrefs, type TokenItem,
+} from "@/api/user";
 import { Avatar } from "@/components/shared/Avatar";
 import { Btn } from "@/components/shared/Btn";
 import { Field } from "@/components/shared/Field";
@@ -27,13 +34,16 @@ function SettingRow({ title, desc, children }: { title: string; desc?: string; c
   );
 }
 
-// ─── Sections ─────────────────────────────────────────────────────────────────
+// ─── Profile section ──────────────────────────────────────────────────────────
 
 function ProfileSection() {
-  const { user, setAuth, token } = useAuthStore();
-  const [name, setName]     = useState(user?.name ?? "");
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved]   = useState(false);
+  const navigate = useNavigate();
+  const { user, setAuth, token, clearAuth } = useAuthStore();
+  const [name, setName]         = useState(user?.name ?? "");
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleSave() {
     if (!name.trim() || name.trim().length < 3) {
@@ -53,28 +63,52 @@ function ProfileSection() {
     }
   }
 
+  function handleAvatarFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 500_000) { toast.error("Image must be under 500 KB."); return; }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      try {
+        await updateAvatarApi(base64);
+        toast.success("Avatar updated.");
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message ?? "Failed to upload avatar.");
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleDeleteAccount() {
+    if (!window.confirm("Delete your account permanently? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      await deleteAccountApi();
+      clearAuth();
+      navigate("/login");
+      toast.success("Account deleted.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Failed to delete account.");
+      setDeleting(false);
+    }
+  }
+
   return (
     <div>
       <div className="mono" style={{ color: "var(--text-3)", fontSize: 11 }}>PATCH /user/profile</div>
       <h2 style={{ fontSize: 18, fontWeight: 500, letterSpacing: -0.01, margin: "4px 0 4px" }}>Profile</h2>
       <p style={{ color: "var(--text-3)", fontSize: 13, margin: "0 0 4px" }}>Your info across MTAC.</p>
 
-      {/* Avatar */}
-      {/* TODO backend: add avatar upload endpoint (POST /user/avatar) */}
-      <SettingRow title="Avatar" desc="Auto-generated from your initials.">
+      <SettingRow title="Avatar" desc="Upload a photo or use your initials.">
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Avatar user={user} size={48} />
-          <Btn
-            variant="secondary"
-            size="sm"
-            onClick={() => toast.info("Avatar upload coming soon.", { description: "Requires POST /user/avatar endpoint." })}
-          >
-            Upload
-          </Btn>
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarFile} />
+          <Btn variant="secondary" size="sm" onClick={() => fileRef.current?.click()}>Upload</Btn>
         </div>
       </SettingRow>
 
-      {/* Name */}
       <SettingRow title="Full name" desc="Min 3, max 50 characters.">
         <Input
           value={name}
@@ -82,16 +116,10 @@ function ProfileSection() {
         />
       </SettingRow>
 
-      {/* Email */}
       <SettingRow title="Email" desc="Used for sign-in and notifications.">
-        <Input
-          value={user?.email ?? ""}
-          disabled
-          rightEl={<Tag>VERIFIED</Tag>}
-        />
+        <Input value={user?.email ?? ""} disabled rightEl={<Tag>VERIFIED</Tag>} />
       </SettingRow>
 
-      {/* User ID */}
       <SettingRow title="User ID" desc="Reference this in the API.">
         <div style={{ display: "flex", gap: 6 }}>
           <Input
@@ -119,31 +147,27 @@ function ProfileSection() {
         )}
       </div>
 
-      {/* Danger zone */}
       <div style={{ marginTop: 48, padding: 16, border: "1px solid #fecaca", background: "#fef2f2", borderRadius: "var(--radius)", display: "flex", alignItems: "center", gap: 14 }}>
         {I.flag?.({ size: 16, style: { color: "#dc2626", flexShrink: 0 } })}
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: "#991b1b" }}>Danger zone</div>
           <div style={{ fontSize: 12, color: "#b91c1c" }}>Delete your account. This cannot be undone.</div>
         </div>
-        {/* TODO backend: add DELETE /user/account endpoint */}
-        <Btn
-          variant="danger"
-          size="sm"
-          onClick={() => toast.info("Account deletion coming soon.", { description: "Requires DELETE /user/account endpoint." })}
-        >
-          Delete account
+        <Btn variant="danger" size="sm" disabled={deleting} onClick={handleDeleteAccount}>
+          {deleting ? "Deleting…" : "Delete account"}
         </Btn>
       </div>
     </div>
   );
 }
 
+// ─── Password section ─────────────────────────────────────────────────────────
+
 function PasswordSection() {
-  const [current, setCurrent]   = useState("");
-  const [next, setNext]         = useState("");
-  const [confirm, setConfirm]   = useState("");
-  const [saving, setSaving]     = useState(false);
+  const [current, setCurrent] = useState("");
+  const [next, setNext]       = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [saving, setSaving]   = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -186,35 +210,47 @@ function PasswordSection() {
   );
 }
 
+// ─── Notifications section ────────────────────────────────────────────────────
+
+const PREF_ITEMS: { k: keyof NotificationPrefs; title: string; desc: string }[] = [
+  { k: "assigned", title: "Task assigned to me",  desc: "When someone assigns you a task." },
+  { k: "mentions", title: "Mentions",              desc: "When someone @mentions you in a comment." },
+  { k: "comments", title: "Comments on my tasks",  desc: "Replies on tasks you created or are assigned to." },
+  { k: "status",   title: "Status changes",        desc: "When a task you follow changes status." },
+  { k: "weekly",   title: "Weekly digest",         desc: "A Monday summary of what's open and due." },
+];
+
 function NotifsSection() {
-  // TODO backend: user model needs notification_prefs field to persist these
-  const [prefs, setPrefs] = useState({
+  const [prefs, setPrefs] = useState<NotificationPrefs>({
     assigned: true, mentions: true, comments: true, status: false, weekly: true,
   });
 
-  const items: [keyof typeof prefs, string, string][] = [
-    ["assigned", "Task assigned to me",    "When someone assigns you a task."],
-    ["mentions", "Mentions",               "When someone @mentions you in a comment."],
-    ["comments", "Comments on my tasks",   "Replies on tasks you created or are assigned to."],
-    ["status",   "Status changes",         "When a task you follow changes status."],
-    ["weekly",   "Weekly digest",          "A Monday summary of what's open and due."],
-  ];
+  async function togglePref(k: keyof NotificationPrefs) {
+    const next = { ...prefs, [k]: !prefs[k] };
+    setPrefs(next);
+    try {
+      await updatePreferencesApi({ [k]: next[k] });
+    } catch {
+      setPrefs(prefs);
+      toast.error("Failed to save preference.");
+    }
+  }
 
   return (
     <div>
+      <div className="mono" style={{ color: "var(--text-3)", fontSize: 11 }}>PATCH /user/preferences</div>
       <h2 style={{ fontSize: 18, fontWeight: 500, margin: "4px 0 4px" }}>Notifications</h2>
-      {/* TODO backend: persist notification prefs — PATCH /user/preferences */}
-      <p style={{ color: "var(--text-3)", fontSize: 13, margin: "0 0 4px" }}>
-        Preferences saved locally for now.
-      </p>
-      {items.map(([k, title, desc]) => (
+      <p style={{ color: "var(--text-3)", fontSize: 13, margin: "0 0 4px" }}>Changes save immediately.</p>
+      {PREF_ITEMS.map(({ k, title, desc }) => (
         <SettingRow key={k} title={title} desc={desc}>
-          <Toggle on={prefs[k]} onChange={() => setPrefs((p) => ({ ...p, [k]: !p[k] }))} />
+          <Toggle on={prefs[k]} onChange={() => togglePref(k)} />
         </SettingRow>
       ))}
     </div>
   );
 }
+
+// ─── Keyboard shortcuts section ───────────────────────────────────────────────
 
 function KeyboardSection() {
   const shortcuts: [string, [string, string[]][]][] = [
@@ -263,43 +299,131 @@ function KeyboardSection() {
   );
 }
 
+// ─── API tokens section ───────────────────────────────────────────────────────
+
 function ApiSection() {
-  // TODO backend: add token management endpoints
-  // GET /user/tokens, POST /user/tokens, DELETE /user/tokens/:id
-  const tokens = [
-    { name: "Local dev",   used: "2m ago",  prefix: "mtac_live_a7f3…" },
-    { name: "CI pipeline", used: "1d ago",  prefix: "mtac_live_b8e1…" },
-  ];
+  const qc = useQueryClient();
+  const [newName, setNewName]     = useState("");
+  const [creating, setCreating]   = useState(false);
+  const [showForm, setShowForm]   = useState(false);
+  const [revealed, setRevealed]   = useState<string | null>(null);
+
+  const { data: tokens = [], isLoading } = useQuery({
+    queryKey: ["user-tokens"],
+    queryFn: listTokensApi,
+  });
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setCreating(true);
+    try {
+      const result = await createTokenApi(newName.trim());
+      qc.invalidateQueries({ queryKey: ["user-tokens"] });
+      setNewName("");
+      setShowForm(false);
+      setRevealed(result.token);
+      toast.success("Token created — copy it now.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Failed to create token.");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleRevoke(t: TokenItem) {
+    if (!window.confirm(`Revoke "${t.name}"? Any apps using it will stop working.`)) return;
+    try {
+      await revokeTokenApi(t._id);
+      qc.invalidateQueries({ queryKey: ["user-tokens"] });
+      toast.success("Token revoked.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Failed to revoke token.");
+    }
+  }
+
+  function timeSince(iso: string) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(diff / 3_600_000);
+    if (h < 1) return "just now";
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
 
   return (
     <div>
-      <h2 style={{ fontSize: 18, fontWeight: 500, margin: "4px 0 4px" }}>API tokens</h2>
-      <p style={{ color: "var(--text-3)", fontSize: 13, margin: "0 0 20px" }}>
-        Authenticate against the MTAC API.
-        {/* TODO backend: token management requires GET/POST/DELETE /user/tokens endpoints */}
-      </p>
-      <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", background: "var(--bg-2)" }}>
-        {tokens.map((t, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderTop: i ? "1px solid var(--border)" : "none" }}>
-            {I.link({ size: 14, style: { color: "var(--text-3)" } })}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{t.name}</div>
-              <span className="mono" style={{ color: "var(--text-3)", fontSize: 11 }}>{t.prefix} · last used {t.used}</span>
-            </div>
-            <Btn variant="ghost" size="sm" onClick={() => toast.info("Token revocation coming soon.")}>Revoke</Btn>
+      <div className="mono" style={{ color: "var(--text-3)", fontSize: 11 }}>GET · POST · DELETE /user/tokens</div>
+      <h2 style={{ fontSize: 18, fontWeight: 500, margin: "4px 0 20px" }}>API tokens</h2>
+
+      {revealed && (
+        <div style={{ marginBottom: 16, padding: 14, background: "var(--accent-wash)", border: "1px solid var(--accent)", borderRadius: "var(--radius)" }}>
+          <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 6 }}>Copy your token now — it won't be shown again.</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <code style={{ flex: 1, fontSize: 11, fontFamily: "var(--font-mono)", wordBreak: "break-all" }}>{revealed}</code>
+            <Btn
+              variant="secondary"
+              size="sm"
+              icon={I.copy({ size: 13 })}
+              onClick={() => { navigator.clipboard.writeText(revealed); toast.success("Copied!"); }}
+            />
           </div>
-        ))}
-      </div>
-      <div style={{ marginTop: 12 }}>
-        <Btn
-          variant="secondary"
-          size="sm"
-          icon={I.plus({ size: 13, stroke: 2 })}
-          onClick={() => toast.info("Token generation coming soon.", { description: "Requires POST /user/tokens endpoint." })}
-        >
-          Generate new token
-        </Btn>
-      </div>
+          <button
+            onClick={() => setRevealed(null)}
+            style={{ marginTop: 8, fontSize: 11, color: "var(--text-3)", background: "none", border: "none", cursor: "pointer" }}
+          >
+            I've copied it — dismiss
+          </button>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div style={{ height: 40, background: "var(--bg-sub)", borderRadius: "var(--radius)", border: "1px solid var(--border)" }} />
+      ) : tokens.length === 0 && !showForm ? (
+        <div style={{ padding: "20px", textAlign: "center", border: "1px dashed var(--border)", borderRadius: "var(--radius)", color: "var(--text-3)", fontSize: 13 }}>
+          No tokens yet.
+        </div>
+      ) : (
+        <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", background: "var(--bg-2)" }}>
+          {tokens.map((t, i) => (
+            <div key={t._id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderTop: i ? "1px solid var(--border)" : "none" }}>
+              {I.link({ size: 14, style: { color: "var(--text-3)" } })}
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>{t.name}</div>
+                <span className="mono" style={{ color: "var(--text-3)", fontSize: 11 }}>
+                  {t.prefix} · {t.last_used_at ? `last used ${timeSince(t.last_used_at)}` : `created ${timeSince(t.created_at)}`}
+                </span>
+              </div>
+              <Btn variant="ghost" size="sm" onClick={() => handleRevoke(t)}>Revoke</Btn>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showForm ? (
+        <form onSubmit={handleCreate} style={{ marginTop: 12, display: "flex", gap: 8 }}>
+          <Input
+            placeholder="Token name (e.g. CI pipeline)"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            autoFocus
+          />
+          <Btn variant="primary" size="sm" type="submit" disabled={creating || !newName.trim()}>
+            {creating ? "Creating…" : "Create"}
+          </Btn>
+          <Btn variant="ghost" size="sm" onClick={() => { setShowForm(false); setNewName(""); }}>Cancel</Btn>
+        </form>
+      ) : (
+        <div style={{ marginTop: 12 }}>
+          <Btn
+            variant="secondary"
+            size="sm"
+            icon={I.plus({ size: 13, stroke: 2 })}
+            onClick={() => setShowForm(true)}
+          >
+            Generate new token
+          </Btn>
+        </div>
+      )}
     </div>
   );
 }
@@ -327,7 +451,6 @@ export default function UserSettingsPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", maxWidth: 1100 }}>
-        {/* Left nav */}
         <nav style={{
           borderRight: "1px solid var(--border)",
           padding: "18px 12px",
@@ -355,7 +478,6 @@ export default function UserSettingsPage() {
           ))}
         </nav>
 
-        {/* Content */}
         <div style={{ padding: "28px 36px", maxWidth: 640 }}>
           {section === "profile"  && <ProfileSection />}
           {section === "security" && <PasswordSection />}

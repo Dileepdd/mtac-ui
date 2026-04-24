@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { toast } from "sonner";
 import { AuthShell } from "../components/AuthShell";
 import { Field } from "@/components/shared/Field";
 import { Input } from "@/components/shared/Input";
@@ -124,15 +123,12 @@ export default function LoginPage() {
         <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
       </div>
 
-      {/*
-        TODO backend: implement Google OAuth (Passport.js or similar).
-        Required: GET /auth/google, GET /auth/google/callback endpoints.
-        For now, clicking shows a "coming soon" notice.
-      */}
       <Btn
         variant="secondary"
         size="lg"
-        onClick={() => toast.info("Google sign-in is coming soon.", { description: "Use email & password for now." })}
+        onClick={() => {
+          window.location.href = `${import.meta.env.VITE_API_URL ?? "http://localhost:3006/api"}/auth/google`;
+        }}
         style={{ width: "100%", justifyContent: "center" }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24">

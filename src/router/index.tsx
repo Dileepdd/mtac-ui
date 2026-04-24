@@ -8,6 +8,7 @@ import ForgotPage from "@/features/auth/pages/ForgotPage";
 import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 import VerifyEmailPage from "@/features/auth/pages/VerifyEmailPage";
 import InviteAcceptPage from "@/features/auth/pages/InviteAcceptPage";
+import OAuthCallbackPage from "@/features/auth/pages/OAuthCallbackPage";
 import WorkspaceSelectorPage from "@/features/workspace/pages/WorkspaceSelectorPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import WorkspacePage from "@/features/workspace/pages/WorkspacePage";
@@ -40,6 +41,7 @@ export default function AppRouter() {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="/invite/:token" element={<InviteAcceptPage />} />
+      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
       {/* Protected — no workspace required */}
       <Route

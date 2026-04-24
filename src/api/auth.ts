@@ -30,7 +30,6 @@ export async function getProfileApi(token: string): Promise<User> {
     _id: String(d._id),
     name: d.name,
     email: d.email,
-    // TODO backend: add `hue` field to user model (number, default random 0-360)
     hue: d.hue ?? 220,
     preferences: d.preferences,
   };

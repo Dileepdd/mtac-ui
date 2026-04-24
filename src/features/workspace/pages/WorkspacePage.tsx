@@ -4,12 +4,49 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { listProjectsApi, type ProjectListItem } from "@/api/project";
+import { getWorkspaceActivityApi, type ActivityItem } from "@/api/workspace";
+import { Avatar } from "@/components/shared/Avatar";
 import { I } from "@/icons";
 import { Btn } from "@/components/shared/Btn";
 import { Input } from "@/components/shared/Input";
 import { ProjectCard } from "../components/ProjectCard";
 import { ProjectTable } from "../components/ProjectTable";
 import { CreateProjectModal } from "../components/CreateProjectModal";
+
+function timeSince(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const h = Math.floor(diff / 3_600_000);
+  if (h < 1) return "just now";
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+
+function idToHue(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0xffff;
+  return h % 360;
+}
+
+function ActivityList({ items }: { items: ActivityItem[] }) {
+  if (items.length === 0)
+    return <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>No activity yet.</div>;
+  return (
+    <div>
+      {items.map((a) => (
+        <div key={a._id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 28px", borderBottom: "1px solid var(--border)" }}>
+          <Avatar user={{ name: a.actor_name || "?", hue: idToHue(a.actor_id) } as any} size={24} />
+          <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5 }}>
+            <span style={{ fontWeight: 500 }}>{a.actor_name?.split(" ")[0] ?? "Someone"}</span>{" "}
+            <span style={{ color: "var(--text-3)" }}>{a.verb}</span>{" "}
+            <span className="mono" style={{ color: "var(--accent)" }}>{a.target}</span>
+            {a.to && <> <span style={{ color: "var(--text-3)" }}>→</span> <span>{a.to}</span></>}
+          </div>
+          <span className="mono" style={{ color: "var(--text-4)", fontSize: 11, flexShrink: 0 }}>{timeSince(a.created_at)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 type View = "grid" | "list";
 type Tab  = "projects" | "activity";
@@ -35,17 +72,19 @@ export default function WorkspacePage() {
     enabled: !!workspace,
   });
 
+  const { data: activityItems = [], isLoading: activityLoading } = useQuery({
+    queryKey: ["ws-activity", workspace?._id],
+    queryFn: () => getWorkspaceActivityApi(workspace!._id, 50),
+    enabled: !!workspace && tab === "activity",
+    staleTime: 30_000,
+  });
+
   const projects = data?.data ?? [];
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(query.toLowerCase())
   );
 
   function handleTabClick(t: Tab) {
-    if (t === "activity") {
-      // TODO backend: add GET /workspace/:id/activity endpoint for activity feed
-      toast.info("Activity feed coming soon.", { description: "Check back after the backend endpoint is ready." });
-      return;
-    }
     setTab(t);
   }
 
@@ -150,7 +189,17 @@ export default function WorkspacePage() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ padding: "0 28px 28px" }}>
+      {tab === "activity" && (
+        <div style={{ padding: "0 0 28px" }}>
+          {activityLoading ? (
+            <div style={{ padding: "40px 28px", color: "var(--text-3)", fontSize: 13 }}>Loading…</div>
+          ) : (
+            <ActivityList items={activityItems} />
+          )}
+        </div>
+      )}
+
+      <div style={{ padding: "0 28px 28px", display: tab === "projects" ? undefined : "none" }}>
         {isLoading ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
             {[0, 1, 2, 3].map((i) => (

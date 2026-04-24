@@ -113,9 +113,16 @@ export async function deleteWorkspaceApi(workspaceId: string): Promise<void> {
   await apiClient.delete(`/workspace/${workspaceId}`);
 }
 
-export async function getMyTasksApi(workspaceId: string, status?: string): Promise<any[]> {
-  const res = await apiClient.get<{ data: any[] }>(`/workspace/${workspaceId}/my-tasks`, {
-    params: status ? { status } : {},
-  });
+export async function getMyTasksApi(
+  workspaceId: string,
+  status?: string,
+  due_after?: string,
+  due_before?: string,
+): Promise<any[]> {
+  const params: Record<string, string> = {};
+  if (status)     params.status     = status;
+  if (due_after)  params.due_after  = due_after;
+  if (due_before) params.due_before = due_before;
+  const res = await apiClient.get<{ data: any[] }>(`/workspace/${workspaceId}/my-tasks`, { params });
   return res.data.data;
 }
