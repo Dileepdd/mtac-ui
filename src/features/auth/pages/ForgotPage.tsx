@@ -6,22 +6,28 @@ import { Field } from "@/components/shared/Field";
 import { Input } from "@/components/shared/Input";
 import { Btn } from "@/components/shared/Btn";
 import { I } from "@/icons";
+import { forgotPasswordApi } from "@/api/auth";
 
 export default function ForgotPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-
-  if (isAuthenticated) return <Navigate to="/workspaces" replace />;
 
   const [email, setEmail]     = useState("");
   const [sent, setSent]       = useState(false);
   const [loading, setLoading] = useState(false);
 
+  if (isAuthenticated) return <Navigate to="/workspaces" replace />;
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setSent(true);
-    setLoading(false);
+    try {
+      await forgotPasswordApi(email);
+    } catch {
+      // Swallow errors — always show success to prevent email enumeration
+    } finally {
+      setSent(true);
+      setLoading(false);
+    }
   }
 
   return (
@@ -59,18 +65,7 @@ export default function ForgotPage() {
               onChange={(e) => setEmail(e.target.value)}
               autoFocus
               required
-              rightEl={
-                email && (
-                  <button
-                    type="button"
-                    onClick={() => setEmail("")}
-                    style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                    title="Clear"
-                  >
-                    {I.x({ size: 14 })}
-                  </button>
-                )
-              }
+              onClear={() => setEmail("")}
             />
           </Field>
           <Btn

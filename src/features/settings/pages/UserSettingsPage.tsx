@@ -168,67 +168,13 @@ function PasswordSection() {
       <p style={{ color: "var(--text-3)", fontSize: 13, margin: "0 0 20px" }}>Choose a strong password and don't reuse it.</p>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 360 }}>
         <Field label="Current password">
-          <Input 
-            type="password" 
-            placeholder="••••••••" 
-            value={current} 
-            onChange={(e) => setCurrent(e.target.value)} 
-            required 
-            rightEl={
-              current && (
-                <button
-                  type="button"
-                  onClick={() => setCurrent("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
-          />
+          <Input type="password" placeholder="••••••••" value={current} onChange={(e) => setCurrent(e.target.value)} required />
         </Field>
         <Field label="New password" hint="8+ chars, upper, lower, number, symbol.">
-          <Input 
-            type="password" 
-            placeholder="••••••••" 
-            value={next} 
-            onChange={(e) => setNext(e.target.value)} 
-            required 
-            rightEl={
-              next && (
-                <button
-                  type="button"
-                  onClick={() => setNext("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
-          />
+          <Input type="password" placeholder="••••••••" value={next} onChange={(e) => setNext(e.target.value)} required />
         </Field>
         <Field label="Confirm new password">
-          <Input 
-            type="password" 
-            placeholder="••••••••" 
-            value={confirm} 
-            onChange={(e) => setConfirm(e.target.value)} 
-            required 
-            rightEl={
-              confirm && (
-                <button
-                  type="button"
-                  onClick={() => setConfirm("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
-          />
+          <Input type="password" placeholder="••••••••" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
         </Field>
         <div style={{ marginTop: 4 }}>
           <Btn variant="primary" size="sm" type="submit" disabled={saving}>

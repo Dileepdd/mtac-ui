@@ -5,6 +5,9 @@ import AppShell from "@/components/layout/AppShell";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
 import ForgotPage from "@/features/auth/pages/ForgotPage";
+import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
+import VerifyEmailPage from "@/features/auth/pages/VerifyEmailPage";
+import InviteAcceptPage from "@/features/auth/pages/InviteAcceptPage";
 import WorkspaceSelectorPage from "@/features/workspace/pages/WorkspaceSelectorPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import WorkspacePage from "@/features/workspace/pages/WorkspacePage";
@@ -34,6 +37,9 @@ export default function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot" element={<ForgotPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route path="/invite/:token" element={<InviteAcceptPage />} />
 
       {/* Protected — no workspace required */}
       <Route

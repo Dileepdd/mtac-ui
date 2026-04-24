@@ -36,6 +36,35 @@ export async function getProfileApi(token: string): Promise<User> {
   };
 }
 
+export async function verifyEmailApi(email: string, otp: string): Promise<void> {
+  await apiClient.post("/auth/verify-email", { email, otp });
+}
+
+export async function resendOtpApi(email: string): Promise<void> {
+  await apiClient.post("/auth/resend-otp", { email });
+}
+
 export async function forgotPasswordApi(email: string): Promise<void> {
   await apiClient.post("/auth/forgot-password", { email });
+}
+
+export async function resetPasswordApi(token: string, newPassword: string): Promise<void> {
+  await apiClient.post(`/auth/reset-password/${token}`, { newPassword });
+}
+
+export interface InviteInfo {
+  workspaceName: string;
+  inviterName: string;
+  email: string;
+  expiresAt: string;
+}
+
+export async function getInviteInfoApi(token: string): Promise<InviteInfo> {
+  const res = await apiClient.get<{ data: InviteInfo }>(`/auth/invite-info/${token}`);
+  return res.data.data;
+}
+
+export async function acceptInviteApi(token: string): Promise<{ workspaceId: string }> {
+  const res = await apiClient.post<{ data: { workspaceId: string } }>(`/auth/accept-invite/${token}`);
+  return res.data.data;
 }

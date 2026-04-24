@@ -15,12 +15,12 @@ export const useWorkspaceStore = create<WorkspaceState>()((set) => ({
   userRole: null,
   setWorkspace: (workspace, role) => {
     const user = useAuthStore.getState().user;
-    applySettingsHierarchy(workspace.settings, user?.preferences);
+    try { applySettingsHierarchy(workspace.settings, user?.preferences); } catch { /* DOM not ready */ }
     set({ workspace, userRole: role });
   },
   clearWorkspace: () => {
     const user = useAuthStore.getState().user;
-    applySettingsHierarchy(undefined, user?.preferences);
+    try { applySettingsHierarchy(undefined, user?.preferences); } catch { /* DOM not ready */ }
     set({ workspace: null, userRole: null });
   },
 }));

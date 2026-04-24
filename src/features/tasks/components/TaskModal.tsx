@@ -73,9 +73,11 @@ function NewTaskForm({ onClose, defaultProjectId }: { onClose: () => void; defau
   const [assigneeId, setAssigneeId] = useState("");
   const [loading, setLoading]       = useState(false);
 
+  const projectRef  = useRef<HTMLButtonElement>(null);
   const statusRef   = useRef<HTMLButtonElement>(null);
   const priorityRef = useRef<HTMLButtonElement>(null);
   const assigneeRef = useRef<HTMLButtonElement>(null);
+  const [projectOpen, setProjectOpen]   = useState(false);
   const [statusOpen, setStatusOpen]     = useState(false);
   const [priorityOpen, setPriorityOpen] = useState(false);
   const [assigneeOpen, setAssigneeOpen] = useState(false);
@@ -164,15 +166,29 @@ function NewTaskForm({ onClose, defaultProjectId }: { onClose: () => void; defau
           {!defaultProjectId && (
             <div>
               <SidebarLabel>Project</SidebarLabel>
-              <select
-                value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                required
-                style={{ ...sidebarBtnStyle, outline: "none" }}
+              <button
+                ref={projectRef}
+                onClick={() => setProjectOpen((p) => !p)}
+                style={{ ...sidebarBtnStyle, color: projectId ? "var(--text)" : "var(--text-3)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
               >
-                <option value="">Select project…</option>
-                {projects.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
-              </select>
+                {I.folder({ size: 13 })}
+                <span style={{ flex: 1 }}>{projects.find((p) => p._id === projectId)?.name ?? "Select project…"}</span>
+                {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
+              </button>
+              <Popover anchor={projectRef} open={projectOpen} onClose={() => setProjectOpen(false)}>
+                {projects.map((p) => (
+                  <MenuItem
+                    key={p._id}
+                    icon={I.folder({ size: 13 })}
+                    selected={p._id === projectId}
+                    onClick={() => { setProjectId(p._id); setProjectOpen(false); }}
+                  >
+                    {p.name}
+                  </MenuItem>
+                ))}
+              </Popover>
             </div>
           )}
 
@@ -181,7 +197,7 @@ function NewTaskForm({ onClose, defaultProjectId }: { onClose: () => void; defau
             <SidebarLabel>Status</SidebarLabel>
             <button
               ref={statusRef}
-              onClick={() => setStatusOpen(true)}
+              onClick={() => setStatusOpen((p) => !p)}
               style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
@@ -204,7 +220,7 @@ function NewTaskForm({ onClose, defaultProjectId }: { onClose: () => void; defau
             <SidebarLabel>Assignee</SidebarLabel>
             <button
               ref={assigneeRef}
-              onClick={() => setAssigneeOpen(true)}
+              onClick={() => setAssigneeOpen((p) => !p)}
               style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
@@ -235,7 +251,7 @@ function NewTaskForm({ onClose, defaultProjectId }: { onClose: () => void; defau
             <SidebarLabel>Priority</SidebarLabel>
             <button
               ref={priorityRef}
-              onClick={() => setPriorityOpen(true)}
+              onClick={() => setPriorityOpen((p) => !p)}
               style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
@@ -313,8 +329,8 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
         assigned_to: (local.assigned_to as any)?._id ?? local.assigned_to ?? undefined,
       });
       queryClient.invalidateQueries({ queryKey: ["tasks", workspace._id, task.project_id] });
-      setDirty(false);
       toast.success("Task updated.");
+      onClose();
     } catch { toast.error("Failed to save changes."); }
     finally { setSaving(false); }
   }
@@ -454,7 +470,7 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
             <SidebarLabel>Assignee</SidebarLabel>
             <button
               ref={assigneeRef}
-              onClick={() => setAssigneeOpen(true)}
+              onClick={() => setAssigneeOpen((p) => !p)}
               style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
@@ -485,7 +501,7 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
             <SidebarLabel>Priority</SidebarLabel>
             <button
               ref={priorityRef}
-              onClick={() => setPriorityOpen(true)}
+              onClick={() => setPriorityOpen((p) => !p)}
               style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}

@@ -73,7 +73,8 @@ export const I: Record<string, IconFn> = {
   trash:      (p) => <Icon {...p} d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/>,
   copy:       (p) => <Icon {...p} d="M8 8h10v12H8zM8 8V4h8l4 4v10M16 4v4h4"/>,
   logout:     (p) => <Icon {...p} d="M15 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 17l-5-5 5-5M5 12h12"/>,
-  flag:       (p) => <Icon {...p} d="M4 22V4M4 4h13l-2 4 2 4H4"/>,
+  flag:          (p) => <Icon {...p} d="M4 22V4M4 4h13l-2 4 2 4H4"/>,
+  alertTriangle: (p) => <Icon {...p} s={<><path d="M10.3 3.9 2 20h20L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 10v4M12 17h.01"/></>}/>,
 };
 
 // ─── Status dot ──────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ import { Input } from "@/components/shared/Input";
 import { Btn } from "@/components/shared/Btn";
 import { I } from "@/icons";
 import { useAuthStore } from "@/stores/authStore";
-import { registerApi, loginApi, getProfileApi } from "@/api/auth";
+import { registerApi } from "@/api/auth";
 
 const criteria = [
   { label: "8+",  key: "length", test: (pw: string) => pw.length >= 8 },
@@ -18,15 +18,15 @@ const criteria = [
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { setAuth, isAuthenticated } = useAuthStore();
-
-  if (isAuthenticated) return <Navigate to="/workspaces" replace />;
+  const { isAuthenticated } = useAuthStore();
 
   const [name, setName]         = useState("");
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
+
+  if (isAuthenticated) return <Navigate to="/workspaces" replace />;
 
   const passed = criteria.map((c) => c.test(password));
   const score  = passed.filter(Boolean).length;
@@ -40,10 +40,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await registerApi({ name, email, password });
-      const { accessToken } = await loginApi({ email, password });
-      const user = await getProfileApi(accessToken);
-      setAuth(user, accessToken);
-      navigate("/workspaces");
+      navigate("/verify-email", { state: { email } });
     } catch (err: any) {
       const firstDetail = err?.response?.data?.errors?.[0]?.message;
       setError(firstDetail ?? err?.response?.data?.message ?? "Registration failed. Please try again.");
@@ -75,18 +72,7 @@ export default function RegisterPage() {
             onChange={(e) => setName(e.target.value)}
             autoFocus
             required
-            rightEl={
-              name && (
-                <button
-                  type="button"
-                  onClick={() => setName("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
+            onClear={() => setName("")}
           />
         </Field>
 
@@ -98,18 +84,7 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            rightEl={
-              email && (
-                <button
-                  type="button"
-                  onClick={() => setEmail("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
+            onClear={() => setEmail("")}
           />
         </Field>
 
@@ -121,18 +96,6 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            rightEl={
-              password && (
-                <button
-                  type="button"
-                  onClick={() => setPassword("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
           />
           {/* Strength bar */}
           <div style={{ display: "flex", gap: 3, marginTop: 6 }}>

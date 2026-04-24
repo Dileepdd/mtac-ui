@@ -30,3 +30,15 @@ export async function updateMemberRoleApi(workspaceId: string, userId: string, r
 export async function removeMemberApi(workspaceId: string, userId: string): Promise<void> {
   await apiClient.delete(`/workspace-member/${workspaceId}/remove`, { data: { userId } });
 }
+
+export async function inviteMemberApi(
+  workspaceId: string,
+  email: string,
+  roleId?: string
+): Promise<{ expiresAt: string; inviteLink: string }> {
+  const res = await apiClient.post<{ data: { expiresAt: string; inviteLink: string } }>(
+    `/workspace-member/${workspaceId}/invite`,
+    { email, roleId }
+  );
+  return res.data.data;
+}

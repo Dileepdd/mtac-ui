@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:3000/api",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -60,7 +60,7 @@ function flushQueue(newToken: string | null) {
 apiClient.interceptors.response.use(
   (res) => res,
   async (err) => {
-    const original = err.config;
+    const original = err.config as typeof err.config & { _retried?: boolean };
     const status   = err.response?.status;
     const url      = original?.url ?? "";
     const isAuthEndpoint = url.includes("/auth/");

@@ -243,18 +243,7 @@ export default function WorkspaceSelectorPage() {
               value={newName} 
               onChange={(e) => setNewName(e.target.value)} 
               required 
-              rightEl={
-                newName && (
-                  <button
-                    type="button"
-                    onClick={() => { setNewName(""); inputRef.current?.focus(); }}
-                    style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                    title="Clear"
-                  >
-                    {I.x({ size: 14 })}
-                  </button>
-                )
-              }
+              onClear={() => { setNewName(""); inputRef.current?.focus(); }}
             />
             {createError && <div style={{ fontSize: 12, color: "#dc2626", marginTop: 6 }}>{createError}</div>}
             <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "flex-end" }}>

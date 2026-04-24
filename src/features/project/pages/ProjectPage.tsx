@@ -254,18 +254,7 @@ export default function ProjectPage() {
             placeholder="Search tasks…" 
             value={query} 
             onChange={(e) => setQuery(e.target.value)} 
-            rightEl={
-              query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
+            onClear={() => setQuery("")}
           />
         </div>
         <Btn variant="ghost" size="sm" icon={I.filter({ size: 13 })} onClick={() => toast.info("Filters coming soon.")}>Filter</Btn>

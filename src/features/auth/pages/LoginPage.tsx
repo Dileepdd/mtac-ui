@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { Link, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AuthShell } from "../components/AuthShell";
 import { Field } from "@/components/shared/Field";
@@ -10,16 +10,18 @@ import { useAuthStore } from "@/stores/authStore";
 import { loginApi, getProfileApi } from "@/api/auth";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const { setAuth, isAuthenticated } = useAuthStore();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const justVerified: boolean = (location.state as any)?.verified === true;
 
-  if (isAuthenticated) return <Navigate to="/workspaces" replace />;
+  const { setAuth, isAuthenticated } = useAuthStore();
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
+
+  if (isAuthenticated) return <Navigate to="/workspaces" replace />;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,8 +33,12 @@ export default function LoginPage() {
       setAuth(user, accessToken, refreshToken);
       navigate("/workspaces");
     } catch (err: any) {
+      if (err?.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+        navigate("/verify-email", { state: { email } });
+        return;
+      }
       const firstDetail = err?.response?.data?.errors?.[0]?.message;
-      setError(firstDetail ?? err?.response?.data?.message ?? "Invalid email or password");
+      setError(firstDetail ?? err?.response?.data?.message ?? "Sign in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -53,6 +59,18 @@ export default function LoginPage() {
         </Link>
       </p>
 
+      {justVerified && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "10px 14px", marginBottom: 16,
+          background: "var(--bg-sub)", border: "1px solid var(--border)",
+          borderRadius: 8, fontSize: 13, color: "var(--status-done)",
+        }}>
+          {I.check({ size: 14, stroke: 2 })}
+          <span style={{ color: "var(--text-2)" }}>Email verified! Sign in to continue.</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <Field label="Email">
           <Input
@@ -63,18 +81,7 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             autoFocus
             required
-            rightEl={
-              email && (
-                <button
-                  type="button"
-                  onClick={() => setEmail("")}
-                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
-                  title="Clear"
-                >
-                  {I.x({ size: 14 })}
-                </button>
-              )
-            }
+            onClear={() => setEmail("")}
           />
         </Field>
 
@@ -87,20 +94,11 @@ export default function LoginPage() {
           </div>
           <Input
             icon={I.lock({ size: 13 })}
-            type={showPw ? "text" : "password"}
+            type="password"
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            rightEl={
-              <button
-                type="button"
-                onClick={() => setShowPw(!showPw)}
-                style={{ color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", display: "inline-flex", padding: 0 }}
-              >
-                {showPw ? I.eyeOff({ size: 13 }) : I.eye({ size: 13 })}
-              </button>
-            }
           />
         </div>
 

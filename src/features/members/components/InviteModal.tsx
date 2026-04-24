@@ -7,6 +7,7 @@ import { Btn } from "@/components/shared/Btn";
 import { I } from "@/icons";
 import type { RoleItem } from "@/api/role";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { inviteMemberApi } from "@/api/member";
 
 interface InviteModalProps {
   open: boolean;
@@ -16,38 +17,66 @@ interface InviteModalProps {
 
 export function InviteModal({ open, onClose, roles }: InviteModalProps) {
   const workspace = useWorkspaceStore((s) => s.workspace);
-  const [email, setEmail]       = useState("");
-  const [selectedRoleId, setSelectedRoleId] = useState(
-    roles.find((r) => !r.all_permissions && r.name.toLowerCase() === "member")?._id ?? roles[roles.length - 1]?._id ?? ""
-  );
-  const [message, setMessage]   = useState("");
+
+  const defaultRoleId = () =>
+    roles.find((r) => !r.all_permissions && r.name.toLowerCase() === "member")?._id ??
+    roles[roles.length - 1]?._id ??
+    "";
+
+  const [email, setEmail] = useState("");
+  const [selectedRoleId, setSelectedRoleId] = useState(defaultRoleId);
+  const [loading, setLoading] = useState(false);
 
   const nonSystemRoles = roles.filter((r) => !r.all_permissions);
 
   function handleClose() {
-    setEmail(""); setMessage("");
+    setEmail("");
+    setSelectedRoleId(defaultRoleId());
     onClose();
+  }
+
+  async function handleSend() {
+    if (!email.trim() || !workspace) return;
+    setLoading(true);
+    try {
+      await inviteMemberApi(workspace._id, email.trim(), selectedRoleId || undefined);
+      toast.success(`Invite sent to ${email.trim()}`);
+      handleClose();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Failed to send invite");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCopyLink() {
+    if (!email.trim() || !workspace) {
+      toast.error("Enter an email address first");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { inviteLink } = await inviteMemberApi(workspace._id, email.trim(), selectedRoleId || undefined);
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success("Invite link copied to clipboard");
+      handleClose();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Failed to generate invite link");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <Modal open={open} onClose={handleClose} width={520}>
-      {/* Header */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-        {/*
-          TODO backend: add invite-by-email flow.
-          Current endpoint POST /workspace-member/:id/create requires an existing userId,
-          not an email. Need: send email → user accepts → membership created.
-        */}
-        <div className="mono" style={{ color: "var(--text-3)", fontSize: 11 }}>
-          POST /workspace-member/:id/create
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 500, marginTop: 4 }}>
+        <div style={{ fontSize: 16, fontWeight: 500 }}>
           Invite people to {workspace?.name ?? "workspace"}
         </div>
       </div>
 
       <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-        <Field label="Email address" hint="Enter the email of an existing MTAC user">
+        <Field label="Email address">
           <Input
             icon={I.mail({ size: 13 })}
             type="email"
@@ -81,22 +110,6 @@ export function InviteModal({ open, onClose, roles }: InviteModalProps) {
             ))}
           </div>
         </Field>
-
-        <Field label="Personal message (optional)">
-          <textarea
-            placeholder="Come help us ship Q4…"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            style={{
-              width: "100%", minHeight: 72, padding: 10,
-              border: "1px solid var(--border)", borderRadius: 6,
-              background: "var(--bg-2)", color: "var(--text)",
-              fontSize: 13, fontFamily: "inherit", resize: "vertical", outline: "none",
-            }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
-          />
-        </Field>
       </div>
 
       <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 8, background: "var(--bg-sub)" }}>
@@ -104,24 +117,22 @@ export function InviteModal({ open, onClose, roles }: InviteModalProps) {
           variant="ghost"
           size="sm"
           icon={I.link({ size: 13 })}
-          onClick={() => toast.info("Invite link coming soon.", { description: "Requires invite-by-email backend flow." })}
+          disabled={loading || !email.trim()}
+          onClick={handleCopyLink}
         >
           Copy invite link
         </Btn>
         <div style={{ flex: 1 }} />
-        <Btn variant="ghost" size="sm" onClick={handleClose}>Cancel</Btn>
+        <Btn variant="ghost" size="sm" onClick={handleClose} disabled={loading}>
+          Cancel
+        </Btn>
         <Btn
           variant="primary"
           size="sm"
-          disabled={!email.trim()}
-          onClick={() => {
-            // TODO backend: implement invite-by-email flow
-            // Current /workspace-member/:id/create requires userId not email
-            toast.info("Email invites coming soon.", { description: "Backend needs invite-by-email endpoint." });
-            handleClose();
-          }}
+          disabled={loading || !email.trim()}
+          onClick={handleSend}
         >
-          Send invite
+          {loading ? "Sending…" : "Send invite"}
         </Btn>
       </div>
     </Modal>
