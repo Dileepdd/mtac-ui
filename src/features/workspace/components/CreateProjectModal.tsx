@@ -7,7 +7,6 @@ import { PROJECT_COLORS, deriveKey } from "./ProjectCard";
 import { createProjectApi } from "@/api/project";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useQueryClient } from "@tanstack/react-query";
-import { I } from "@/icons";
 
 interface CreateProjectModalProps {
   open: boolean;

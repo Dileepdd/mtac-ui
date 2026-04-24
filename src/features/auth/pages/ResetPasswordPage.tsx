@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
       <AuthShell>
         <div style={{ textAlign: "center", padding: "32px 0" }}>
           <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 48, height: 48, borderRadius: "50%", background: "var(--bg-sub)", border: "1px solid var(--border)", marginBottom: 20 }}>
-            {I.check({ size: 20, stroke: 2, color: "var(--status-done)" })}
+            {I.check({ size: 20, stroke: 2, style: { color: "var(--status-done)" } })}          
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.02, margin: "0 0 8px" }}>
             Password updated
