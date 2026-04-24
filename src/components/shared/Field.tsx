@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 interface FieldProps {
-  label?:    string;
+  label?:    ReactNode;
   hint?:     string;
   error?:    string;
   children:  ReactNode;

@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -82,6 +82,7 @@
   /* Fonts */
   --font-ui:      "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono-ui: "Geist Mono", ui-monospace, "SF Mono", monospace;
+  --font-mono:    var(--font-mono-ui); /* alias used by design-reference inline styles */
 }
 
 /* ─── Dark theme ─────────────────────────────────────────────────────────── */
@@ -98,6 +99,7 @@
   --text-2: #b8b8b4;
   --text-3: #7a7a75;
   --text-4: #555551;
+  --font-mono: var(--font-mono-ui);
 
   --accent-wash: rgba(99, 102, 241, 0.16);
 

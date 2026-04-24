@@ -23,7 +23,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const url = err.config?.url ?? "";
+    const isAuthEndpoint = url.includes("/auth/");
+    // Only force-logout on 401s from protected endpoints, not from login/register itself
+    if (err.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem("auth-storage");
       window.location.replace("/login");
     }

@@ -145,14 +145,14 @@ export function Sidebar() {
     path === base ? location.pathname === base : location.pathname.startsWith(path);
 
   // Projects — wired directly here; Phase 12 will lift into a shared query hook
-  const { data: projectsData } = useQuery<{ projects: Project[] }>({
+  const { data: projectsData } = useQuery<{ data: Project[] }>({
     queryKey: ["projects", workspace?._id],
     queryFn: () =>
       apiClient.get(`/workspace/${workspace!._id}/project?limit=50`).then((r) => r.data),
     enabled: !!workspace?._id,
     staleTime: 30_000,
   });
-  const projects: Project[] = projectsData?.projects ?? [];
+  const projects: Project[] = projectsData?.data ?? [];
 
   function handleSignOut() {
     clearWorkspace();

@@ -187,16 +187,16 @@ Port `sidebar.jsx` exactly:
 
 ---
 
-## Phase 3 — Auth Screens
+## Phase 3 — Auth Screens ✅
 *Reference: `screen-auth.jsx`*
 
-### 3.1 AuthShell (`src/features/auth/components/AuthShell.tsx`)
+### 3.1 ✅ AuthShell (`src/features/auth/components/AuthShell.tsx`)
 Port exactly:
 - Left half (form): logo + form content + footer links (Privacy / Terms / Docs)
 - Right half: `background: var(--bg-sub)`, dot-grid (`radial-gradient` + `mask-image`), tagline "A keyboard-first project tool for teams that ship.", 3 stats (⌘K / ~12ms / 42)
 - Right half hidden on mobile
 
-### 3.2 Login page (`src/features/auth/pages/LoginPage.tsx`)
+### 3.2 ✅ Login page (`src/features/auth/pages/LoginPage.tsx`)
 - `POST /auth/login` endpoint hint in mono above title
 - Email + password (show/hide toggle with `I.eye`/`I.eyeOff`)
 - Forgot link → `/forgot`
@@ -204,21 +204,21 @@ Port exactly:
 - "OR" divider + Google button (visual only for now)
 - "New here? Create an account" → `/register`
 
-### 3.3 Register page (`src/features/auth/pages/RegisterPage.tsx`)
+### 3.3 ✅ Register page (`src/features/auth/pages/RegisterPage.tsx`)
 - Full name + work email + password
 - Password strength: 5-segment bar (red→amber→green), mono badges: `8+` `A` `a` `9` `#`
 - POST → auto login → `/workspaces`
 
-### 3.4 Forgot page (`src/features/auth/pages/ForgotPage.tsx`)
+### 3.4 ✅ Forgot page (`src/features/auth/pages/ForgotPage.tsx`)
 - Back link, email field, "Send reset link" button
 - On submit: success state ("Check your email" card with green check)
 
 ---
 
-## Phase 4 — Workspace Selector
+## Phase 4 — Workspace Selector ✅
 *No direct reference equivalent — simple bridge screen*
 
-### 4.1 WorkspaceSelectorPage (`src/features/workspace/pages/WorkspaceSelectorPage.tsx`)
+### 4.1 ✅ WorkspaceSelectorPage (`src/features/workspace/pages/WorkspaceSelectorPage.tsx`)
 - Lists user's workspaces as cards (name, slug, member count, `ProjectGlyph`-style icon)
 - Click → `setWorkspace()` → navigate `/w/:slug`
 - "Create workspace" → inline form (just name) → POST `/api/workspace` → enter it
@@ -226,14 +226,14 @@ Port exactly:
 
 ---
 
-## Phase 5 — Dashboard
+## Phase 5 — Dashboard ✅
 *Reference: `screen-dashboard.jsx`*
 
-### 5.1 DashboardPage (`src/features/dashboard/pages/DashboardPage.tsx`)
+### 5.1 ✅ DashboardPage (`src/features/dashboard/pages/DashboardPage.tsx`)
 - Sticky header: "Tuesday · Nov 10" mono + "Good morning, {name}" (18px 500) + OVERVIEW/FOCUS toggle + "New" button
 - Toggle stored in local state (`"v1"` | `"v2"`)
 
-### 5.2 Overview (`src/features/dashboard/components/`)
+### 5.2 ✅ Overview (`src/features/dashboard/components/Overview.tsx`)
 - **StatCard row** (4-col grid): Active projects / Open tasks / Completed this week / Team members — delta % below
 - **Projects grid** (2-col): `ProjectCard` with glyph + name + key + updated + progress bar (3px, accent fill). "All projects →" link
 - **My tasks list**: tasks assigned to current user, not done. Columns: priority bars + status dot + key (mono 58px) + title + due + avatar. Row height 36px.
@@ -241,7 +241,7 @@ Port exactly:
   - Activity feed: actor avatar + name + verb + target (accent mono) + time
   - This week: mini calendar items (day/date box + title + time)
 
-### 5.3 Focus mode (`src/features/dashboard/components/FocusMode.tsx`)
+### 5.3 ✅ Focus mode (`src/features/dashboard/components/FocusMode.tsx`)
 - Max-width 760px centered
 - "FOCUS MODE" mono label
 - Count headline: "You have N things to do today."
@@ -251,67 +251,67 @@ Port exactly:
 
 ---
 
-## Phase 6 — Workspace Projects View
+## Phase 6 — Workspace Projects View ✅
 *Reference: `screen-workspace.jsx`*
 
-### 6.1 WorkspacePage (`src/features/workspace/pages/WorkspacePage.tsx`)
+### 6.1 ✅ WorkspacePage (`src/features/workspace/pages/WorkspacePage.tsx`)
 - Sticky header: "WORKSPACE / {slug}" breadcrumb (mono), workspace name (22px) + avatar stack + Settings + New project buttons
 - Tabs: Projects / Members / Activity / Settings (Projects active by default)
 - Toolbar: search input + Filter button + grid/list toggle (icon buttons)
 
-### 6.2 Project grid (`src/features/workspace/components/ProjectCard.tsx`)
+### 6.2 ✅ Project grid (`src/features/workspace/components/ProjectCard.tsx`)
 `auto-fill minmax(240px, 1fr)` grid:
 - `ProjectGlyph` (26px) + name + key (mono)
 - Progress bar (3px accent) + done/total + %
 - Avatar stack + updated time
 
-### 6.3 Project table (`src/features/workspace/components/ProjectTable.tsx`)
+### 6.3 ✅ Project table (`src/features/workspace/components/ProjectTable.tsx`)
 Grid columns: icon | Name | Key | Progress (bar + count) | Members | Updated.
 Row height 40px, hover `var(--bg-hover)`.
 
-### 6.4 CreateProjectModal
+### 6.4 ✅ CreateProjectModal (`src/features/workspace/components/CreateProjectModal.tsx`)
 Name + key (auto from name, editable) + color swatch picker (PROJECT_COLORS from design data).
 POST `/api/project`.
 
 ---
 
-## Phase 7 — Project View / Kanban
+## Phase 7 — Project View / Kanban ✅
 *Reference: `screen-project.jsx`*
 
-### 7.1 ProjectPage (`src/features/project/pages/ProjectPage.tsx`)
+### 7.1 ✅ ProjectPage (`src/features/project/pages/ProjectPage.tsx`)
 - Sticky header: breadcrumb + glyph + name + key (mono) + avatar stack + Board/List toggle + "New task (C)" button
 - Toolbar: search + Filter + assignee filter chips (ALL circle + member avatars with opacity when filtered) + CARDS/COMPACT board variant toggle
 
-### 7.2 KanbanBoard (`src/features/project/components/KanbanBoard.tsx`)
+### 7.2 ✅ KanbanBoard (`src/features/project/components/KanbanBoard.tsx`)
 - Horizontal scroll, `min-height: calc(100vh - 180px)`, `align-items: flex-start`
 - Column: `flex: 0 0 300px`, `background: var(--bg-sub)`, rounded border
 - Column header: status dot + label + count + `+` add button
 - Drop zone: `onDragOver` → `background: var(--accent-wash)` + `onDrop` → PATCH task status
 
-### 7.3 KanbanCard — detailed (`src/features/project/components/KanbanCard.tsx`)
+### 7.3 ✅ KanbanCard — detailed (`src/features/project/components/KanbanCard.tsx`)
 Draggable. Padding 10px, `var(--bg-2)`, border. Shows:
 - Row: task key (mono) + priority bars (right)
 - Title (13px, 1.4 line-height)
 - Labels row (Tags)
 - Footer: due (calendar icon + date) + comments count + assignee avatar
 
-### 7.4 KanbanCompactCard (`src/features/project/components/KanbanCompactCard.tsx`)
+### 7.4 ✅ KanbanCompactCard (`src/features/project/components/KanbanCompactCard.tsx`)
 Single row `6px 10px`: priority bars + task# + title (truncated) + due + avatar. Height ~32px.
 
-### 7.5 InlineNewTask (`src/features/project/components/InlineNewTask.tsx`)
+### 7.5 ✅ InlineNewTask (`src/features/project/components/InlineNewTask.tsx`)
 Textarea in column, auto-focused, accent border. Enter → add task, ESC → cancel.
 Footer: "ENTER to save · ESC to cancel" mono + "ADD →" button.
 
-### 7.6 ListView (`src/features/project/components/ListView.tsx`)
+### 7.6 ✅ ListView (`src/features/project/components/ListView.tsx`)
 Grouped by status. Each row: priority bars + status dot + key (60px mono) + title + labels + due + comments + avatar.
 Row height 34px. Group header: status dot + label + count.
 
 ---
 
-## Phase 8 — Task Modal
+## Phase 8 — Task Modal ✅
 *Reference: `task-modal.jsx`*
 
-### 8.1 TaskModal (`src/features/tasks/components/TaskModal.tsx`)
+### 8.1 ✅ TaskModal (`src/features/tasks/components/TaskModal.tsx`)
 Global overlay — rendered in AppShell, controlled by `taskModalStore`.
 
 **Layout**: `Modal` width=780, grid `1fr 240px`.
@@ -336,30 +336,30 @@ Global overlay — rendered in AppShell, controlled by `taskModalStore`.
 
 ---
 
-## Phase 9 — Members + Roles
+## Phase 9 — Members + Roles ✅
 *Reference: `screen-members.jsx`*
 
-### 9.1 MembersPage (`src/features/members/pages/MembersPage.tsx`)
+### 9.1 ✅ MembersPage (`src/features/members/pages/MembersPage.tsx`)
 - Sticky header: "WORKSPACE / MEMBERS" breadcrumb, "Team" title + "{N} members · {N} roles" mono + "Invite people" button
 - Tabs: Members / Roles & permissions (accent bottom border on active)
 
-### 9.2 MembersTable (`src/features/members/components/MembersTable.tsx`)
+### 9.2 ✅ MembersTable (inline in MembersPage)
 - Search input (260px) + "Filter by role" ghost button
 - Table grid: `1.6fr 1.2fr 0.8fr 1fr 44px`
 - Columns: Member (avatar 28px + name + YOU badge) / Email (mono) / Role / Joined (mono) / actions
 - `RoleDropdown` per row: `bg-sub` pill with shield icon + role name + chevron
 
-### 9.3 RoleDropdown (`src/features/members/components/RoleDropdown.tsx`)
+### 9.3 ✅ RoleDropdown (`src/features/members/components/RoleDropdown.tsx`)
 Anchor-ref Popover. Disabled (opacity 0.7, cursor not-allowed) for system roles.
 
-### 9.4 RolesPanel (`src/features/members/components/RolesPanel.tsx`)
+### 9.4 ✅ RolesPanel (`src/features/members/components/RolesPanel.tsx`)
 Grid `240px 1fr`:
 - Role list: shield icon (accent for system) + name + "N members · N perms" mono + SYSTEM tag
 - Permission grid (right): role name + PATCH endpoint hint + Duplicate/Read-only button
   - Grouped by category (2-column grid per group)
   - Custom checkbox: 14×14px, accent bg when on, white checkmark, `cursor: not-allowed` for system roles
 
-### 9.5 InviteModal (`src/features/members/components/InviteModal.tsx`)
+### 9.5 ✅ InviteModal (`src/features/members/components/InviteModal.tsx`)
 `Modal` width=520:
 - Header: endpoint hint mono + workspace name
 - Email field + role card selector (one per non-system role, accent border when selected)
@@ -368,17 +368,17 @@ Grid `240px 1fr`:
 
 ---
 
-## Phase 10 — Settings
+## Phase 10 — Settings ✅
 *Reference: `screen-settings.jsx`*
 
-### 10.1 UserSettingsPage (`src/features/settings/pages/UserSettingsPage.tsx`)
+### 10.1 ✅ UserSettingsPage (`src/features/settings/pages/UserSettingsPage.tsx`)
 Grid `200px 1fr`. Left nav (min-height calc(100vh - 120px)):
 - Profile / Password / Notifications / Keyboard / API tokens
 - Active nav item: `var(--bg-hover)` bg, icon `var(--accent)`, text `var(--text)` 500
 
 `SettingRow`: `grid 1fr 300px`, `padding: 16px 0`, `border-top: 1px solid var(--border)`.
 
-### 10.2 ProfileSection
+### 10.2 ✅ ProfileSection
 - Avatar: `Avatar` 48px + Upload + Remove buttons
 - Full name Input → PATCH `/api/user/profile`
 - Email: disabled + VERIFIED tag
@@ -386,19 +386,19 @@ Grid `200px 1fr`. Left nav (min-height calc(100vh - 120px)):
 - Save button + "✓ Saved" mono confirmation
 - Danger zone: red border box (`#fecaca`/`#fef2f2`), flag icon, Delete account button
 
-### 10.3 PasswordSection
+### 10.3 ✅ PasswordSection
 Current + new + confirm password fields. PATCH `/api/user/password`.
 
-### 10.4 NotifsSection
+### 10.4 ✅ NotifsSection
 `Toggle` per item: assigned / mentions / comments / status / weekly digest.
 
-### 10.5 KeyboardSection
+### 10.5 ✅ KeyboardSection
 Static table grouped by Global / Navigation / Task. `<kbd>` badges per shortcut.
 
-### 10.6 ApiSection
+### 10.6 ✅ ApiSection
 Token list (name + prefix + last used + Revoke). "Generate new token" button.
 
-### 10.7 WorkspaceSettingsPage (`src/features/settings/pages/WorkspaceSettingsPage.tsx`)
+### 10.7 ✅ WorkspaceSettingsPage (`src/features/settings/pages/WorkspaceSettingsPage.tsx`)
 Accessible from sidebar workspace popover → "Workspace settings":
 - General: workspace name (editable), slug (read-only)
 - Appearance: accent color picker (hex input + preset swatches from `PROJECT_COLORS`), font select (Geist / IBM Plex / System), density select (Compact / Comfortable / Spacious)
@@ -408,10 +408,10 @@ Accessible from sidebar workspace popover → "Workspace settings":
 
 ---
 
-## Phase 11 — CmdK + Keyboard Shortcuts
+## Phase 11 — CmdK + Keyboard Shortcuts ✅
 *Reference: `cmdk.jsx`, `app.jsx`*
 
-### 11.1 CmdK (`src/components/overlays/CmdK.tsx`)
+### 11.1 ✅ CmdK (`src/components/overlays/CmdK.tsx`)
 Port `cmdk.jsx` exactly:
 - Fixed inset backdrop `rgba(15,15,15,0.35)`, click-outside closes
 - Modal: width 560px, `var(--bg-2)`, border, `border-radius: var(--radius-lg)`, `modal-in` animation
@@ -427,7 +427,7 @@ Actions: New task (C) / New project (⇧P) / Invite member (⇧I) / Toggle theme
 Projects: from workspace store
 Tasks: recent assigned tasks
 
-### 11.2 Keyboard shortcuts hook (`src/hooks/useKeyboardShortcuts.ts`)
+### 11.2 ✅ Keyboard shortcuts hook (`src/hooks/useKeyboardShortcuts.ts`)
 Global `keydown` on `window`, registered in AppShell:
 - `⌘K` / `Ctrl+K` → `openCmdK()`
 - `C` (not in input) → `openTask(null)` (new task)
@@ -438,7 +438,7 @@ Global `keydown` on `window`, registered in AppShell:
 
 ---
 
-## Phase 12 — API Layer
+## Phase 12 — API Layer ✅
 *Wire all screens to the real backend. Replace mock data with TanStack Query.*
 
 ### 12.1 Auth API (`src/api/auth.ts`)
