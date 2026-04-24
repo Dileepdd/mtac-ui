@@ -431,7 +431,7 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
             <SidebarLabel>Status</SidebarLabel>
             <button
               ref={statusRef}
-              onClick={() => setStatusOpen(true)}
+              onClick={() => setStatusOpen(prev => !prev)}
               style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}

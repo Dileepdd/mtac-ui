@@ -99,7 +99,7 @@ export default function WorkspaceSelectorPage() {
   const user         = useAuthStore((s) => s.user);
   const clearAuth    = useAuthStore((s) => s.clearAuth);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
-  const workspace    = useWorkspaceStore((s) => s.workspace);
+  // const workspace    = useWorkspaceStore((s) => s.workspace);
 
   const [workspaces, setWorkspaces]       = useState<WorkspaceListItem[]>([]);
   const [loading, setLoading]             = useState(true);

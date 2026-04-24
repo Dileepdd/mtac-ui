@@ -69,6 +69,7 @@ export async function updateTaskApi(
     priority?:    TaskPriority;
     labels?:      string[];
     due?:         string | null;
+    assigned_to? : string
   }
 ): Promise<BackendTask> {
   const res = await apiClient.patch<{ data: BackendTask }>(

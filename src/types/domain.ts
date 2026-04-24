@@ -7,7 +7,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  hue: number;
+  hue?: number;
   preferences?: UserPreferences;
 }
 
