@@ -44,14 +44,7 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <UserSettingsPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/settings" element={<Navigate to="/workspaces" replace />} />
 
       {/* Workspace routes */}
       <Route
@@ -67,6 +60,7 @@ export default function AppRouter() {
         <Route path="p/:key" element={<ProjectPage />} />
         <Route path="members" element={<MembersPage />} />
         <Route path="settings" element={<WorkspaceSettingsPage />} />
+        <Route path="account" element={<UserSettingsPage />} />
       </Route>
 
       {/* Fallback */}

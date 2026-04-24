@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Task } from "@/types/domain";
 import { Avatar } from "@/components/shared/Avatar";
 import { Tag } from "@/components/shared/Tag";
-import { PriorityBars, StatusDot, I } from "@/icons";
+import { PriorityBars, I } from "@/icons";
 
 interface KanbanCardProps {
   task: Task;
@@ -54,7 +54,17 @@ export function KanbanCard({ task, onOpen, isActive }: KanbanCardProps) {
         <PriorityBars level={task.priority} />
       </div>
 
-      <div style={{ fontSize: 13, lineHeight: 1.4, color: "var(--text)" }}>{task.title}</div>
+      <div style={{ fontSize: 13, lineHeight: 1.4, color: "var(--text)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{task.title}</div>
+
+      {task.description && (
+        <div style={{
+          fontSize: 11.5, lineHeight: 1.5, color: "var(--text-3)",
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}>
+          {task.description}
+        </div>
+      )}
 
       {task.labels.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>

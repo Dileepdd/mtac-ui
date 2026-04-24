@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { AuthShell } from "../components/AuthShell";
 import { useAuthStore } from "@/stores/authStore";
 import { Field } from "@/components/shared/Field";
@@ -8,7 +8,6 @@ import { Btn } from "@/components/shared/Btn";
 import { I } from "@/icons";
 
 export default function ForgotPage() {
-  const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   if (isAuthenticated) return <Navigate to="/workspaces" replace />;
@@ -60,6 +59,18 @@ export default function ForgotPage() {
               onChange={(e) => setEmail(e.target.value)}
               autoFocus
               required
+              rightEl={
+                email && (
+                  <button
+                    type="button"
+                    onClick={() => setEmail("")}
+                    style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                    title="Clear"
+                  >
+                    {I.x({ size: 14 })}
+                  </button>
+                )
+              }
             />
           </Field>
           <Btn

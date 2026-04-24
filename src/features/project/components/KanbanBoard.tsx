@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   DndContext, DragOverlay, closestCorners,
-  useDraggable, useDroppable,
+  useDroppable,
   type DragEndEvent, type DragStartEvent,
   PointerSensor, useSensor, useSensors,
 } from "@dnd-kit/core";

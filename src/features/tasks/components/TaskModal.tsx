@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTaskModalStore } from "@/stores/taskModalStore";
@@ -7,6 +6,7 @@ import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useAuthStore } from "@/stores/authStore";
 import { updateTaskApi, createTaskApi } from "@/api/task";
 import { listProjectsApi } from "@/api/project";
+import { listMembersApi } from "@/api/member";
 import { getCommentsApi, addCommentApi } from "@/api/comment";
 import type { Task, TaskStatus, TaskPriority } from "@/types/domain";
 import { Modal } from "@/components/shared/Modal";
@@ -29,9 +29,11 @@ const PRIORITIES: TaskPriority[] = ["urgent", "high", "med", "low", "none"];
 function timeSince(iso: string) {
   if (!iso) return "—";
   const diff = Date.now() - new Date(iso).getTime();
-  const h = Math.floor(diff / 3_600_000);
-  if (h < 1) return "just now";
-  if (h < 24) return `${h}h ago`;
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1)  return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const h = Math.floor(mins / 60);
+  if (h < 24)    return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
 }
 
@@ -41,7 +43,7 @@ function idToHue(id: string) {
   return h % 360;
 }
 
-// ─── Shared sidebar components ────────────────────────────────────────────────
+// ─── Shared layout pieces ─────────────────────────────────────────────────────
 
 function SidebarLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -51,48 +53,61 @@ function SidebarLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SidebarBtn({ children, onClick, icon, ref: _ref }: {
-  children: React.ReactNode; onClick?: () => void;
-  icon?: React.ReactNode; ref?: React.RefObject<HTMLButtonElement | null>;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 10px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 5, fontSize: 12.5, cursor: "pointer", textAlign: "left" }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
-    >
-      {icon}
-      <span style={{ flex: 1 }}>{children}</span>
-      {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
-    </button>
-  );
-}
+const sidebarBtnStyle: React.CSSProperties = {
+  display: "flex", alignItems: "center", gap: 8, width: "100%",
+  padding: "6px 10px", background: "var(--bg-2)", border: "1px solid var(--border)",
+  borderRadius: 5, fontSize: 12.5, cursor: "pointer",
+};
 
 // ─── New Task Form ────────────────────────────────────────────────────────────
 
-function NewTaskForm({ onClose }: { onClose: () => void }) {
+function NewTaskForm({ onClose, defaultProjectId }: { onClose: () => void; defaultProjectId: string | null }) {
   const workspace   = useWorkspaceStore((s) => s.workspace);
   const queryClient = useQueryClient();
 
-  const [title, setTitle]         = useState("");
-  const [projectId, setProjectId] = useState("");
-  const [status, setStatus]       = useState<TaskStatus>("todo");
-  const [loading, setLoading]     = useState(false);
+  const [title, setTitle]           = useState("");
+  const [description, setDescription] = useState("");
+  const [projectId, setProjectId]   = useState(defaultProjectId ?? "");
+  const [status, setStatus]         = useState<TaskStatus>("todo");
+  const [priority, setPriority]     = useState<TaskPriority>("med");
+  const [assigneeId, setAssigneeId] = useState("");
+  const [loading, setLoading]       = useState(false);
 
-  const { data } = useQuery({
+  const statusRef   = useRef<HTMLButtonElement>(null);
+  const priorityRef = useRef<HTMLButtonElement>(null);
+  const assigneeRef = useRef<HTMLButtonElement>(null);
+  const [statusOpen, setStatusOpen]     = useState(false);
+  const [priorityOpen, setPriorityOpen] = useState(false);
+  const [assigneeOpen, setAssigneeOpen] = useState(false);
+
+  const { data: projectsData } = useQuery({
     queryKey: ["projects", workspace?._id],
     queryFn: () => listProjectsApi(workspace!._id),
     enabled: !!workspace,
   });
-  const projects = data?.data ?? [];
+  const projects = projectsData?.data ?? [];
 
-  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const { data: membersData } = useQuery({
+    queryKey: ["members", workspace?._id],
+    queryFn: () => listMembersApi(workspace!._id),
+    enabled: !!workspace,
+  });
+  const members = membersData?.data?.members ?? [];
+
+  const assigneeName = members.find((m) => m.user_id._id === assigneeId)?.user_id.name;
+  const assigneeUser = members.find((m) => m.user_id._id === assigneeId)?.user_id;
+
+  async function handleCreate() {
     if (!workspace || !projectId || !title.trim()) return;
     setLoading(true);
     try {
-      await createTaskApi(workspace._id, projectId, { title: title.trim() });
+      await createTaskApi(workspace._id, projectId, {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        status,
+        priority,
+        assigned_to: assigneeId || undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["tasks", workspace._id, projectId] });
       toast.success("Task created.");
       onClose();
@@ -104,39 +119,149 @@ function NewTaskForm({ onClose }: { onClose: () => void }) {
     }
   }
 
+  const canCreate = !!title.trim() && !!projectId;
+
   return (
-    <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ fontSize: 16, fontWeight: 500 }}>New task</div>
-      <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <textarea autoFocus placeholder="Task title" value={title} onChange={(e) => setTitle(e.target.value)} required
-          style={{ width: "100%", border: "1px solid var(--border)", borderRadius: 6, padding: "8px 10px", fontSize: 14, fontWeight: 500, background: "var(--bg-sub)", color: "var(--text)", resize: "none", outline: "none", fontFamily: "inherit", minHeight: 42 }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
-        />
-        <div style={{ display: "flex", gap: 8 }}>
-          <div style={{ flex: 1 }}>
-            <SidebarLabel>Project</SidebarLabel>
-            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} required
-              style={{ width: "100%", padding: "6px 10px", border: "1px solid var(--border)", borderRadius: 5, background: "var(--bg-2)", color: "var(--text)", fontSize: 12.5, cursor: "pointer" }}>
-              <option value="">Select project…</option>
-              {projects.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
-            </select>
-          </div>
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 18px", borderBottom: "1px solid var(--border)" }}>
+        <span className="mono" style={{ color: "var(--text-3)", fontSize: 11.5 }}>New task</span>
+        <div style={{ flex: 1 }} />
+        <Btn variant="ghost" size="sm" icon={I.x({ size: 13 })} onClick={onClose} />
+      </div>
+
+      {/* Body */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", minHeight: 400 }}>
+        {/* Left: title + description */}
+        <div style={{ padding: "20px 24px", borderRight: "1px solid var(--border)" }}>
+          <textarea
+            autoFocus
+            placeholder="Task title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{
+              width: "100%", border: "none", outline: "none", resize: "none",
+              background: "transparent", color: "var(--text)", fontSize: 20,
+              fontWeight: 500, letterSpacing: -0.02, lineHeight: 1.25,
+              fontFamily: "inherit", padding: 0, minHeight: 30,
+            }}
+          />
+          <textarea
+            placeholder="Add a description…"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={{
+              width: "100%", marginTop: 8, border: "none", outline: "none",
+              resize: "vertical", background: "transparent", color: "var(--text-2)",
+              fontSize: 13.5, lineHeight: 1.6, fontFamily: "inherit", minHeight: 80, padding: 0,
+            }}
+          />
+        </div>
+
+        {/* Right: sidebar */}
+        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, background: "var(--bg-sub)" }}>
+          {/* Project — only when not inside a project already */}
+          {!defaultProjectId && (
+            <div>
+              <SidebarLabel>Project</SidebarLabel>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                required
+                style={{ ...sidebarBtnStyle, outline: "none" }}
+              >
+                <option value="">Select project…</option>
+                {projects.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
+              </select>
+            </div>
+          )}
+
+          {/* Status */}
           <div>
             <SidebarLabel>Status</SidebarLabel>
-            <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              style={{ padding: "6px 10px", border: "1px solid var(--border)", borderRadius: 5, background: "var(--bg-2)", color: "var(--text)", fontSize: 12.5, cursor: "pointer" }}>
-              {(Object.keys(STATUS_LABELS) as TaskStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
-            </select>
+            <button
+              ref={statusRef}
+              onClick={() => setStatusOpen(true)}
+              style={sidebarBtnStyle}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
+              <StatusDot status={status} size={12} />
+              <span style={{ flex: 1 }}>{STATUS_LABELS[status]}</span>
+              {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
+            </button>
+            <Popover anchor={statusRef} open={statusOpen} onClose={() => setStatusOpen(false)}>
+              {(["todo", "in_progress", "done"] as TaskStatus[]).map((s) => (
+                <MenuItem key={s} icon={<StatusDot status={s} size={11} />} selected={s === status} onClick={() => { setStatus(s); setStatusOpen(false); }}>
+                  {STATUS_LABELS[s]}
+                </MenuItem>
+              ))}
+            </Popover>
+          </div>
+
+          {/* Assignee */}
+          <div>
+            <SidebarLabel>Assignee</SidebarLabel>
+            <button
+              ref={assigneeRef}
+              onClick={() => setAssigneeOpen(true)}
+              style={sidebarBtnStyle}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
+              <Avatar user={assigneeUser ?? null} size={18} />
+              <span style={{ flex: 1 }}>{assigneeName ?? "Unassigned"}</span>
+              {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
+            </button>
+            <Popover anchor={assigneeRef} open={assigneeOpen} onClose={() => setAssigneeOpen(false)}>
+              <MenuItem icon={<Avatar user={null} size={16} />} selected={!assigneeId} onClick={() => { setAssigneeId(""); setAssigneeOpen(false); }}>
+                Unassigned
+              </MenuItem>
+              {members.map((m) => (
+                <MenuItem
+                  key={m.user_id._id}
+                  icon={<Avatar user={m.user_id} size={16} />}
+                  selected={m.user_id._id === assigneeId}
+                  onClick={() => { setAssigneeId(m.user_id._id); setAssigneeOpen(false); }}
+                >
+                  {m.user_id.name}
+                </MenuItem>
+              ))}
+            </Popover>
+          </div>
+
+          {/* Priority */}
+          <div>
+            <SidebarLabel>Priority</SidebarLabel>
+            <button
+              ref={priorityRef}
+              onClick={() => setPriorityOpen(true)}
+              style={sidebarBtnStyle}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
+              <PriorityBars level={priority} />
+              <span style={{ flex: 1, textTransform: "capitalize" }}>{priority}</span>
+              {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
+            </button>
+            <Popover anchor={priorityRef} open={priorityOpen} onClose={() => setPriorityOpen(false)}>
+              {PRIORITIES.map((p) => (
+                <MenuItem key={p} icon={<PriorityBars level={p} />} selected={p === priority} onClick={() => { setPriority(p); setPriorityOpen(false); }}>
+                  <span style={{ textTransform: "capitalize" }}>{p}</span>
+                </MenuItem>
+              ))}
+            </Popover>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 4 }}>
-          <Btn variant="ghost" size="sm" onClick={onClose}>Cancel</Btn>
-          <Btn variant="primary" size="sm" type="submit" disabled={loading || !title.trim() || !projectId}>
-            {loading ? "Creating…" : "Create task"}
-          </Btn>
-        </div>
-      </form>
+      </div>
+
+      {/* Footer */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "12px 18px", borderTop: "1px solid var(--border)" }}>
+        <Btn variant="ghost" size="sm" onClick={onClose}>Cancel</Btn>
+        <Btn variant="primary" size="sm" disabled={loading || !canCreate} onClick={handleCreate}>
+          {loading ? "Creating…" : "Create task"}
+        </Btn>
+      </div>
     </div>
   );
 }
@@ -149,69 +274,69 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
   const queryClient = useQueryClient();
 
   const [local, setLocal]           = useState<Task>(task);
+  const [dirty, setDirty]           = useState(false);
+  const [saving, setSaving]         = useState(false);
   const [newComment, setNewComment] = useState("");
   const [postingComment, setPostingComment] = useState(false);
-  const didMount = useRef(false);
 
-  useEffect(() => { setLocal(task); didMount.current = false; }, [task._id]);
+  useEffect(() => { setLocal(task); setDirty(false); }, [task._id]);
 
-  const statusRef = useRef<HTMLButtonElement>(null);
-  const prioRef   = useRef<HTMLButtonElement>(null);
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [prioOpen, setPrioOpen]     = useState(false);
+  const statusRef   = useRef<HTMLButtonElement>(null);
+  const priorityRef = useRef<HTMLButtonElement>(null);
+  const assigneeRef = useRef<HTMLButtonElement>(null);
+  const [statusOpen, setStatusOpen]     = useState(false);
+  const [priorityOpen, setPriorityOpen] = useState(false);
+  const [assigneeOpen, setAssigneeOpen] = useState(false);
 
-  // Fetch real comments
+  const { data: membersData } = useQuery({
+    queryKey: ["members", workspace?._id],
+    queryFn: () => listMembersApi(workspace!._id),
+    enabled: !!workspace,
+  });
+  const members = membersData?.data?.members ?? [];
+
   const { data: comments = [], refetch: refetchComments } = useQuery({
     queryKey: ["comments", task._id],
     queryFn: () => getCommentsApi(workspace!._id, task.project_id, task._id),
     enabled: !!workspace && !!task._id,
   });
 
-  // Auto-save title/description
-  const saveText = useCallback(async (patch: { title?: string; description?: string }) => {
-    if (!workspace) return;
+  async function handleSave() {
+    if (!workspace || !dirty) return;
+    setSaving(true);
     try {
-      await updateTaskApi(workspace._id, task.project_id, task._id, patch);
+      await updateTaskApi(workspace._id, task.project_id, task._id, {
+        title: local.title,
+        description: local.description,
+        status: local.status,
+        priority: local.priority,
+        assigned_to: (local.assigned_to as any)?._id ?? local.assigned_to ?? undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["tasks", workspace._id, task.project_id] });
+      setDirty(false);
+      toast.success("Task updated.");
     } catch { toast.error("Failed to save changes."); }
-  }, [workspace, task._id, task.project_id, queryClient]);
-
-  useEffect(() => {
-    if (!didMount.current) { didMount.current = true; return; }
-    const t = setTimeout(() => saveText({ title: local.title }), 800);
-    return () => clearTimeout(t);
-  }, [local.title]);
-
-  useEffect(() => {
-    if (!didMount.current) return;
-    const t = setTimeout(() => saveText({ description: local.description }), 800);
-    return () => clearTimeout(t);
-  }, [local.description]);
-
-  // Status change — immediate
-  async function handleStatusChange(s: TaskStatus) {
-    setLocal((p) => ({ ...p, status: s })); setStatusOpen(false);
-    if (!workspace) return;
-    try {
-      await updateTaskApi(workspace._id, task.project_id, task._id, { status: s });
-      queryClient.invalidateQueries({ queryKey: ["tasks", workspace._id, task.project_id] });
-    } catch {
-      toast.error("Failed to update status.");
-      setLocal((p) => ({ ...p, status: task.status }));
-    }
+    finally { setSaving(false); }
   }
 
-  // Priority change — immediate
-  async function handlePriorityChange(p: TaskPriority) {
-    setLocal((prev) => ({ ...prev, priority: p })); setPrioOpen(false);
-    if (!workspace) return;
-    try {
-      await updateTaskApi(workspace._id, task.project_id, task._id, { priority: p });
-      queryClient.invalidateQueries({ queryKey: ["tasks", workspace._id, task.project_id] });
-    } catch { toast.error("Failed to update priority."); }
+  function handleStatusChange(s: TaskStatus) {
+    setLocal((p) => ({ ...p, status: s }));
+    setStatusOpen(false);
+    setDirty(true);
   }
 
-  // Post comment
+  function handlePriorityChange(p: TaskPriority) {
+    setLocal((prev) => ({ ...prev, priority: p }));
+    setPriorityOpen(false);
+    setDirty(true);
+  }
+
+  function handleAssigneeChange(member: any | null) {
+    setLocal((prev) => ({ ...prev, assigned_to: member }));
+    setAssigneeOpen(false);
+    setDirty(true);
+  }
+
   async function handleComment() {
     if (!newComment.trim() || !workspace) return;
     setPostingComment(true);
@@ -224,26 +349,33 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
   }
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 18px", borderBottom: "1px solid var(--border)" }}>
         <span className="mono" style={{ color: "var(--text-3)", fontSize: 11.5 }}>{local.key}</span>
         <div style={{ flex: 1 }} />
         <Btn variant="ghost" size="sm" icon={I.copy({ size: 13 })} onClick={() => { navigator.clipboard.writeText(task._id); toast.success("Task ID copied."); }} />
         <Btn variant="ghost" size="sm" icon={I.link({ size: 13 })} onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied."); }} />
-        <Btn variant="ghost" size="sm" icon={I.more({ size: 14 })} />
+        <Btn variant="ghost" size="sm" icon={I.more({ size: 14 })} onClick={() => toast.info("Task actions coming soon.")} />
         <div style={{ width: 1, height: 18, background: "var(--border)", margin: "0 4px" }} />
         <Btn variant="ghost" size="sm" icon={I.x({ size: 13 })} onClick={onClose} />
       </div>
 
+      {/* Body */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", minHeight: 400 }}>
         {/* Main panel */}
         <div style={{ padding: "20px 24px", borderRight: "1px solid var(--border)" }}>
-          <textarea value={local.title} onChange={(e) => setLocal((p) => ({ ...p, title: e.target.value }))}
-            style={{ width: "100%", border: "none", outline: "none", resize: "none", background: "transparent", color: "var(--text)", fontSize: 20, fontWeight: 500, letterSpacing: -0.02, lineHeight: 1.25, fontFamily: "inherit", padding: 0, minHeight: 30 }} />
-          <textarea value={local.description ?? ""} onChange={(e) => setLocal((p) => ({ ...p, description: e.target.value }))}
+          <textarea
+            value={local.title}
+            onChange={(e) => { setLocal((p) => ({ ...p, title: e.target.value })); setDirty(true); }}
+            style={{ width: "100%", border: "none", outline: "none", resize: "none", background: "transparent", color: "var(--text)", fontSize: 20, fontWeight: 500, letterSpacing: -0.02, lineHeight: 1.25, fontFamily: "inherit", padding: 0, minHeight: 30 }}
+          />
+          <textarea
+            value={local.description ?? ""}
+            onChange={(e) => { setLocal((p) => ({ ...p, description: e.target.value })); setDirty(true); }}
             placeholder="Add a description…"
-            style={{ width: "100%", marginTop: 8, border: "none", outline: "none", resize: "vertical", background: "transparent", color: "var(--text-2)", fontSize: 13.5, lineHeight: 1.6, fontFamily: "inherit", minHeight: 80, padding: 0 }} />
+            style={{ width: "100%", marginTop: 8, border: "none", outline: "none", resize: "vertical", background: "transparent", color: "var(--text-2)", fontSize: 13.5, lineHeight: 1.6, fontFamily: "inherit", minHeight: 80, padding: 0 }}
+          />
 
           {/* Activity / Comments */}
           <div style={{ marginTop: 24, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
@@ -273,10 +405,13 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
             <div style={{ display: "flex", gap: 10 }}>
               <Avatar user={user} size={24} />
               <div style={{ flex: 1, padding: 10, background: "var(--bg-sub)", border: "1px solid var(--border)", borderRadius: 6 }}>
-                <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)}
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Leave a comment…"
                   onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); handleComment(); } }}
-                  style={{ width: "100%", border: "none", outline: "none", resize: "none", background: "transparent", color: "var(--text)", fontSize: 13, lineHeight: 1.5, fontFamily: "inherit", minHeight: 44 }} />
+                  style={{ width: "100%", border: "none", outline: "none", resize: "none", background: "transparent", color: "var(--text)", fontSize: 13, lineHeight: 1.5, fontFamily: "inherit", minHeight: 44 }}
+                />
                 <div style={{ display: "flex", alignItems: "center", marginTop: 6 }}>
                   <div style={{ flex: 1 }} />
                   <span className="mono" style={{ color: "var(--text-4)", marginRight: 8, fontSize: 10.5 }}>⌘ + ENTER</span>
@@ -294,10 +429,13 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
           {/* Status */}
           <div>
             <SidebarLabel>Status</SidebarLabel>
-            <button ref={statusRef} onClick={() => setStatusOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 10px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 5, fontSize: 12.5, cursor: "pointer" }}
+            <button
+              ref={statusRef}
+              onClick={() => setStatusOpen(true)}
+              style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}>
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
               <StatusDot status={local.status} size={12} />
               <span style={{ flex: 1 }}>{STATUS_LABELS[local.status]}</span>
               {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
@@ -315,28 +453,48 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
           <div>
             <SidebarLabel>Assignee</SidebarLabel>
             <button
-              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 10px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 5, fontSize: 12.5, cursor: "pointer" }}
-              onClick={() => toast.info("Assignee picker coming soon.", { description: "Needs workspace members endpoint." })}
+              ref={assigneeRef}
+              onClick={() => setAssigneeOpen(true)}
+              style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}>
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
               <Avatar user={local.assigned_to} size={18} />
               <span style={{ flex: 1 }}>{local.assigned_to?.name ?? "Unassigned"}</span>
               {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
             </button>
+            <Popover anchor={assigneeRef} open={assigneeOpen} onClose={() => setAssigneeOpen(false)}>
+              <MenuItem icon={<Avatar user={null} size={16} />} selected={!local.assigned_to} onClick={() => handleAssigneeChange(null)}>
+                Unassigned
+              </MenuItem>
+              {members.map((m) => (
+                <MenuItem
+                  key={m.user_id._id}
+                  icon={<Avatar user={m.user_id} size={16} />}
+                  selected={m.user_id._id === local.assigned_to?._id}
+                  onClick={() => handleAssigneeChange(m.user_id)}
+                >
+                  {m.user_id.name}
+                </MenuItem>
+              ))}
+            </Popover>
           </div>
 
           {/* Priority */}
           <div>
             <SidebarLabel>Priority</SidebarLabel>
-            <button ref={prioRef} onClick={() => setPrioOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 10px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 5, fontSize: 12.5, cursor: "pointer", textTransform: "capitalize" }}
+            <button
+              ref={priorityRef}
+              onClick={() => setPriorityOpen(true)}
+              style={sidebarBtnStyle}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}>
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
               <PriorityBars level={local.priority} />
               <span style={{ flex: 1, textTransform: "capitalize" }}>{local.priority}</span>
               {I.chevDown({ size: 11, stroke: 2, style: { color: "var(--text-3)" } })}
             </button>
-            <Popover anchor={prioRef} open={prioOpen} onClose={() => setPrioOpen(false)}>
+            <Popover anchor={priorityRef} open={priorityOpen} onClose={() => setPriorityOpen(false)}>
               {PRIORITIES.map((p) => (
                 <MenuItem key={p} icon={<PriorityBars level={p} />} selected={p === local.priority} onClick={() => handlePriorityChange(p)}>
                   <span style={{ textTransform: "capitalize" }}>{p}</span>
@@ -348,16 +506,15 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
           {/* Due date */}
           <div>
             <SidebarLabel>Due</SidebarLabel>
-            <div style={{ position: "relative" }}>
-              <button
-                style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 10px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 5, fontSize: 12.5, color: local.due ? "var(--text)" : "var(--text-3)", cursor: "pointer" }}
-                onClick={() => toast.info("Due date picker coming soon.", { description: "Task model has due field — UI date picker needed." })}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}>
-                {I.calendar({ size: 13 })}
-                <span>{local.due ?? "No date"}</span>
-              </button>
-            </div>
+            <button
+              style={{ ...sidebarBtnStyle, color: local.due ? "var(--text)" : "var(--text-3)" }}
+              onClick={() => toast.info("Due date picker coming soon.", { description: "Task model has due field — UI date picker needed." })}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
+              {I.calendar({ size: 13 })}
+              <span>{local.due ?? "No date"}</span>
+            </button>
           </div>
 
           {/* Labels */}
@@ -367,7 +524,8 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
               {local.labels.map((l) => <Tag key={l}>{l}</Tag>)}
               <button
                 onClick={() => toast.info("Labels editor coming soon.")}
-                style={{ padding: "0 6px", height: 18, fontSize: 11, color: "var(--text-3)", border: "1px dashed var(--border-strong)", borderRadius: 4, display: "inline-flex", alignItems: "center", gap: 3, background: "transparent", cursor: "pointer" }}>
+                style={{ padding: "0 6px", height: 18, fontSize: 11, color: "var(--text-3)", border: "1px dashed var(--border-strong)", borderRadius: 4, display: "inline-flex", alignItems: "center", gap: 3, background: "transparent", cursor: "pointer" }}
+              >
                 {I.plus({ size: 10, stroke: 2 })} Add
               </button>
             </div>
@@ -378,24 +536,37 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
             <div className="mono" style={{ color: "var(--text-3)", fontSize: 10.5, lineHeight: 1.9 }}>
               <div>CREATED · {timeSince(task.created_at)}</div>
               <div>UPDATED · {timeSince(task.updated_at)}</div>
-              <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>ID · {task._id}</div>
+              {(task as any).created_by && (
+                <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  BY · {(task as any).created_by?.name ?? (task as any).created_by}
+                </div>
+              )}
+              <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>ID · {task.key}</div>
             </div>
           </div>
         </div>
       </div>
-    </>
+
+      {/* Footer */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "12px 18px", borderTop: "1px solid var(--border)" }}>
+        <Btn variant="ghost" size="sm" disabled={!dirty} onClick={() => { setLocal(task); setDirty(false); }}>Discard</Btn>
+        <Btn variant="primary" size="sm" disabled={!dirty || saving || !local.title.trim()} onClick={handleSave}>
+          {saving ? "Saving…" : "Update task"}
+        </Btn>
+      </div>
+    </div>
   );
 }
 
 // ─── Root export ──────────────────────────────────────────────────────────────
 
 export function TaskModal() {
-  const { task, open, closeTask } = useTaskModalStore();
+  const { task, open, closeTask, defaultProjectId } = useTaskModalStore();
   return (
-    <Modal open={open} onClose={closeTask} width={task ? 780 : 480}>
+    <Modal open={open} onClose={closeTask} width={780}>
       {task
         ? <TaskDetail task={task} onClose={closeTask} />
-        : <NewTaskForm onClose={closeTask} />
+        : <NewTaskForm onClose={closeTask} defaultProjectId={defaultProjectId} />
       }
     </Modal>
   );

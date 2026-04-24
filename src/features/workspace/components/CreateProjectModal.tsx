@@ -7,6 +7,7 @@ import { PROJECT_COLORS, deriveKey } from "./ProjectCard";
 import { createProjectApi } from "@/api/project";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { I } from "@/icons";
 
 interface CreateProjectModalProps {
   open: boolean;
@@ -65,6 +66,18 @@ export function CreateProjectModal({ open, onClose, onCreated }: CreateProjectMo
               onChange={(e) => setName(e.target.value)}
               autoFocus
               required
+              rightEl={
+                name && (
+                  <button
+                    type="button"
+                    onClick={() => setName("")}
+                    style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                    title="Clear"
+                  >
+                    {I.x({ size: 14 })}
+                  </button>
+                )
+              }
             />
           </Field>
 

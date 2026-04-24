@@ -36,7 +36,7 @@ interface FocusModeProps {
   onOpenTask: (task: Task) => void;
 }
 
-export function FocusMode({ userName, onOpenTask }: FocusModeProps) {
+export function FocusMode({ onOpenTask }: FocusModeProps) {
   const workspace = useWorkspaceStore((s) => s.workspace);
 
   const { data: raw, isLoading } = useQuery({

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { listWorkspacesApi, createWorkspaceApi, type WorkspaceListItem } from "@/api/workspace";
@@ -94,24 +94,34 @@ function WorkspaceCard({ item, onClick }: { item: WorkspaceListItem; onClick: ()
 
 export default function WorkspaceSelectorPage() {
   const navigate     = useNavigate();
+  const location     = useLocation();
+  const wantsCreate  = (location.state as { create?: boolean } | null)?.create === true;
   const user         = useAuthStore((s) => s.user);
   const clearAuth    = useAuthStore((s) => s.clearAuth);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
+  const workspace    = useWorkspaceStore((s) => s.workspace);
 
   const [workspaces, setWorkspaces]       = useState<WorkspaceListItem[]>([]);
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState("");
-  const [creating, setCreating]           = useState(false);
+  const [creating, setCreating]           = useState(wantsCreate);
   const [newName, setNewName]             = useState("");
   const [createError, setCreateError]     = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const clearWorkspace = useWorkspaceStore((s) => s.clearWorkspace);
+
   function handleLogout() {
     clearAuth();
     navigate("/login", { replace: true });
   }
+
+  // Clear workspace when entering workspace selector
+  useEffect(() => {
+    clearWorkspace();
+  }, [clearWorkspace]);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,7 +130,7 @@ export default function WorkspaceSelectorPage() {
         if (cancelled) return;
         const list = res.data;
         setWorkspaces(list);
-        if (list.length === 1) {
+        if (list.length === 1 && !wantsCreate) {
           const ws   = toWorkspace(list[0]);
           const role = toRole(list[0]);
           setWorkspace(ws, role);
@@ -175,7 +185,11 @@ export default function WorkspaceSelectorPage() {
             <span style={{ color: "var(--accent)", display: "inline-flex" }}>{I.logo({ size: 20 })}</span>
             <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: -0.02 }}>MTAC</span>
           </div>
-          <Btn variant="ghost" size="sm" icon={I.logout({ size: 13 })} onClick={handleLogout}>Sign out</Btn>
+          {workspaces.length > 0 ? (
+            <Btn variant="ghost" size="sm" icon={I.chevLeft({ size: 13 })} onClick={() => navigate(-1)}>Back</Btn>
+          ) : (
+            <Btn variant="ghost" size="sm" icon={I.logout({ size: 13 })} onClick={handleLogout}>Sign out</Btn>
+          )}
         </div>
 
         <h1 style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.02, margin: "0 0 4px" }}>Select a workspace</h1>
@@ -223,13 +237,31 @@ export default function WorkspaceSelectorPage() {
         ) : (
           <form onSubmit={handleCreate} style={{ border: "1px solid var(--accent)", borderRadius: 8, background: "var(--bg-2)", padding: 14 }}>
             <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-2)", marginBottom: 8 }}>New workspace name</div>
-            <Input ref={inputRef} placeholder="e.g. Acme Corp" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+            <Input 
+              ref={inputRef} 
+              placeholder="e.g. Acme Corp" 
+              value={newName} 
+              onChange={(e) => setNewName(e.target.value)} 
+              required 
+              rightEl={
+                newName && (
+                  <button
+                    type="button"
+                    onClick={() => { setNewName(""); inputRef.current?.focus(); }}
+                    style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                    title="Clear"
+                  >
+                    {I.x({ size: 14 })}
+                  </button>
+                )
+              }
+            />
             {createError && <div style={{ fontSize: 12, color: "#dc2626", marginTop: 6 }}>{createError}</div>}
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "flex-end" }}>
+              <Btn variant="ghost" size="sm" onClick={() => { setCreating(false); setNewName(""); setCreateError(""); }}>Cancel</Btn>
               <Btn variant="primary" size="sm" type="submit" disabled={createLoading || !newName.trim()}>
                 {createLoading ? "Creating…" : "Create"}
               </Btn>
-              <Btn variant="ghost" size="sm" onClick={() => { setCreating(false); setNewName(""); setCreateError(""); }}>Cancel</Btn>
             </div>
           </form>
         )}

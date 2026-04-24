@@ -7,7 +7,7 @@ export interface ProjectListItem {
   color:      string;
   taskCount:  number;
   done:       number;
-  created_by: string;
+  created_by: string | { _id: string; name: string };
   created_at: string;
   updated_at: string;
 }

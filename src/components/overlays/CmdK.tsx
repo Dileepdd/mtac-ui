@@ -7,7 +7,7 @@ import { useTaskModalStore } from "@/stores/taskModalStore";
 import { listProjectsApi } from "@/api/project";
 import { applyTheme } from "@/config/colors";
 import { ProjectGlyph } from "@/components/shared/ProjectGlyph";
-import { StatusDot, I } from "@/icons";
+import { I } from "@/icons";
 import { idToColor, deriveKey } from "./cmdk-utils";
 
 // helpers used in ProjectGlyph — exported so keyboard shortcuts can also use them
@@ -153,7 +153,17 @@ export function CmdK() {
               fontSize: 14, color: "var(--text)",
             }}
           />
-          <span className="kbd">ESC</span>
+          {q && (
+            <button
+              type="button"
+              onClick={() => setQ("")}
+              style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+              title="Clear"
+            >
+              {I.x({ size: 14 })}
+            </button>
+          )}
+          {!q && <span className="kbd">ESC</span>}
         </div>
 
         {/* Results */}

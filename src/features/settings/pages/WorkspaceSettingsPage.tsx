@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -7,7 +7,6 @@ import { updateWorkspaceApi, deleteWorkspaceApi } from "@/api/workspace";
 import { applySettingsHierarchy, type Font, type Density } from "@/config/colors";
 import { Btn } from "@/components/shared/Btn";
 import { Input } from "@/components/shared/Input";
-import { Field } from "@/components/shared/Field";
 import { Modal } from "@/components/shared/Modal";
 import { I } from "@/icons";
 
@@ -45,7 +44,6 @@ function SettingRow({ title, desc, children }: { title: string; desc?: string; c
 
 export default function WorkspaceSettingsPage() {
   const navigate    = useNavigate();
-  const { slug }    = useParams<{ slug: string }>();
   const workspace   = useWorkspaceStore((s) => s.workspace);
   const user        = useAuthStore((s) => s.user);
 

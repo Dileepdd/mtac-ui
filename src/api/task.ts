@@ -44,6 +44,7 @@ export async function createTaskApi(
   body: {
     title:        string;
     description?: string;
+    status?:      import("@/types/domain").TaskStatus;
     assigned_to?: string;
     priority?:    TaskPriority;
     labels?:      string[];

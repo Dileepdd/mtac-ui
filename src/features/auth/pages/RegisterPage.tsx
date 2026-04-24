@@ -75,6 +75,18 @@ export default function RegisterPage() {
             onChange={(e) => setName(e.target.value)}
             autoFocus
             required
+            rightEl={
+              name && (
+                <button
+                  type="button"
+                  onClick={() => setName("")}
+                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                  title="Clear"
+                >
+                  {I.x({ size: 14 })}
+                </button>
+              )
+            }
           />
         </Field>
 
@@ -86,6 +98,18 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            rightEl={
+              email && (
+                <button
+                  type="button"
+                  onClick={() => setEmail("")}
+                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                  title="Clear"
+                >
+                  {I.x({ size: 14 })}
+                </button>
+              )
+            }
           />
         </Field>
 
@@ -97,6 +121,18 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            rightEl={
+              password && (
+                <button
+                  type="button"
+                  onClick={() => setPassword("")}
+                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                  title="Clear"
+                >
+                  {I.x({ size: 14 })}
+                </button>
+              )
+            }
           />
           {/* Strength bar */}
           <div style={{ display: "flex", gap: 3, marginTop: 6 }}>

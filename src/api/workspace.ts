@@ -1,5 +1,4 @@
 import { apiClient } from "./client";
-import type { Role } from "@/types/domain";
 
 // ─── List ─────────────────────────────────────────────────────────────────────
 

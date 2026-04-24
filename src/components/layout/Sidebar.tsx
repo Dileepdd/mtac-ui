@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
@@ -204,7 +205,7 @@ export function Sidebar() {
             {workspace?.name ?? "Current workspace"}
           </MenuItem>
           <div style={{ height: 1, background: "var(--border)", margin: "4px 0" }} />
-          <MenuItem icon={<I.plus size={13} />} onClick={() => { setWsOpen(false); navigate("/workspaces"); }}>
+          <MenuItem icon={<I.plus size={13} />} onClick={() => { setWsOpen(false); navigate("/workspaces", { state: { create: true } }); }}>
             Create workspace
           </MenuItem>
           <MenuItem icon={<I.settings size={13} />} onClick={() => { setWsOpen(false); navigate(`${base}/settings`); }}>
@@ -240,7 +241,7 @@ export function Sidebar() {
         <NavItem
           icon={<I.inbox size={14} />} label="Inbox"
           active={false}
-          onClick={() => {}}
+          onClick={() => toast.info("Inbox coming soon.")}
           count={0}
         />
         <NavItem
@@ -251,7 +252,7 @@ export function Sidebar() {
         <NavItem
           icon={<I.activity size={14} />} label="My tasks"
           active={false}
-          onClick={() => navigate(base)}
+          onClick={() => toast.info("My Tasks coming soon.", { description: "Will show tasks assigned to you across all projects." })}
         />
       </nav>
 
@@ -260,7 +261,7 @@ export function Sidebar() {
       {favsOpen && (
         <div style={{ padding: "0 8px", display: "flex", flexDirection: "column", gap: 1 }}>
           {projects.slice(0, 2).map((p) => (
-            <ProjectRow key={p._id} project={p} onClick={() => navigate(`${base}/p/${p.key}`)} />
+            <ProjectRow key={p._id} project={p} onClick={() => navigate(`${base}/p/${p._id}`)} />
           ))}
         </div>
       )}
@@ -279,7 +280,7 @@ export function Sidebar() {
           overflow: "auto", flex: 1,
         }}>
           {projects.map((p) => (
-            <ProjectRow key={p._id} project={p} onClick={() => navigate(`${base}/p/${p.key}`)} />
+            <ProjectRow key={p._id} project={p} onClick={() => navigate(`${base}/p/${p._id}`)} />
           ))}
           {projects.length === 0 && (
             <div style={{ padding: "6px 8px", fontSize: 11.5, color: "var(--text-4)" }}>
@@ -301,8 +302,8 @@ export function Sidebar() {
         />
         <NavItem
           icon={<I.settings size={14} />} label="Settings"
-          active={isActive(`${base}/settings`)}
-          onClick={() => navigate(`${base}/settings`)}
+          active={isActive(`${base}/account`)}
+          onClick={() => navigate(`${base}/account`)}
         />
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", marginTop: 2 }}>
           <Avatar user={user} size={20} />

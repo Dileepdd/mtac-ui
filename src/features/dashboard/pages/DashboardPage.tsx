@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { useTaskModalStore } from "@/stores/taskModalStore";
 import { Btn } from "@/components/shared/Btn";
@@ -24,8 +23,6 @@ function todayLabel() {
 type Tab = "v1" | "v2";
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const { slug } = useParams<{ slug: string }>();
   const user     = useAuthStore((s) => s.user);
   const openTask = useTaskModalStore((s) => s.openTask);
 

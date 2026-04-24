@@ -26,9 +26,9 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const { accessToken } = await loginApi({ email, password });
+      const { accessToken, refreshToken } = await loginApi({ email, password });
       const user = await getProfileApi(accessToken);
-      setAuth(user, accessToken);
+      setAuth(user, accessToken, refreshToken);
       navigate("/workspaces");
     } catch (err: any) {
       const firstDetail = err?.response?.data?.errors?.[0]?.message;
@@ -63,6 +63,18 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             autoFocus
             required
+            rightEl={
+              email && (
+                <button
+                  type="button"
+                  onClick={() => setEmail("")}
+                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                  title="Clear"
+                >
+                  {I.x({ size: 14 })}
+                </button>
+              )
+            }
           />
         </Field>
 

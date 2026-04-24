@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
 import { I } from "@/icons";
 
@@ -14,6 +14,7 @@ interface PopoverProps {
 
 export function Popover({ anchor, open, onClose, children, align = "start", width = 220, offsetY = 4 }: PopoverProps) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open || !anchor.current) return;
@@ -21,17 +22,22 @@ export function Popover({ anchor, open, onClose, children, align = "start", widt
     const left = align === "end" ? r.right - width : r.left;
     setPos({ top: r.bottom + offsetY, left });
 
+    // Use click (not mousedown) so MenuItem onClick fires before the outside-click handler.
+    // Also exclude clicks inside the popover itself so menu items work.
     const close = (e: MouseEvent) => {
-      if (!anchor.current?.contains(e.target as Node)) onClose?.();
+      const target = e.target as Node;
+      if (!anchor.current?.contains(target) && !popoverRef.current?.contains(target)) {
+        onClose?.();
+      }
     };
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose?.(); };
 
-    const tid = setTimeout(() => document.addEventListener("mousedown", close), 0);
+    const tid = setTimeout(() => document.addEventListener("click", close), 0);
     document.addEventListener("keydown", esc);
 
     return () => {
       clearTimeout(tid);
-      document.removeEventListener("mousedown", close);
+      document.removeEventListener("click", close);
       document.removeEventListener("keydown", esc);
     };
   }, [open, anchor, align, width, offsetY, onClose]);
@@ -39,13 +45,16 @@ export function Popover({ anchor, open, onClose, children, align = "start", widt
   if (!open || !pos) return null;
 
   return (
-    <div style={{
-      position: "fixed", top: pos.top, left: pos.left, width,
-      background: "var(--bg-2)", border: "1px solid var(--border)",
-      borderRadius: "var(--radius)", boxShadow: "var(--shadow-md)",
-      zIndex: 90, padding: 4,
-      animation: "slide-up 0.08s ease-out",
-    }}>
+    <div
+      ref={popoverRef}
+      style={{
+        position: "fixed", top: pos.top, left: pos.left, width,
+        background: "var(--bg-2)", border: "1px solid var(--border)",
+        borderRadius: "var(--radius)", boxShadow: "var(--shadow-md)",
+        zIndex: 90, padding: 4,
+        animation: "slide-up 0.08s ease-out",
+      }}
+    >
       {children}
     </div>
   );

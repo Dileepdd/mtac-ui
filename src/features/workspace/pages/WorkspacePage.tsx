@@ -12,13 +12,11 @@ import { ProjectTable } from "../components/ProjectTable";
 import { CreateProjectModal } from "../components/CreateProjectModal";
 
 type View = "grid" | "list";
-type Tab  = "projects" | "members" | "activity" | "settings";
+type Tab  = "projects" | "activity";
 
 const TABS: { k: Tab; label: string }[] = [
-  { k: "projects",  label: "Projects"  },
-  { k: "members",   label: "Members"   },
-  { k: "activity",  label: "Activity"  },
-  { k: "settings",  label: "Settings"  },
+  { k: "projects", label: "Projects" },
+  { k: "activity", label: "Activity" },
 ];
 
 export default function WorkspacePage() {
@@ -43,8 +41,6 @@ export default function WorkspacePage() {
   );
 
   function handleTabClick(t: Tab) {
-    if (t === "members")  { navigate(`/w/${slug}/members`);  return; }
-    if (t === "settings") { navigate(`/w/${slug}/settings`); return; }
     if (t === "activity") {
       // TODO backend: add GET /workspace/:id/activity endpoint for activity feed
       toast.info("Activity feed coming soon.", { description: "Check back after the backend endpoint is ready." });
@@ -80,14 +76,6 @@ export default function WorkspacePage() {
             {workspace?.name ?? "Workspace"}
           </h1>
           <div style={{ flex: 1 }} />
-          <Btn
-            variant="secondary"
-            size="sm"
-            icon={I.settings({ size: 13 })}
-            onClick={() => navigate(`/w/${slug}/settings`)}
-          >
-            Settings
-          </Btn>
           <Btn
             variant="primary"
             size="sm"
@@ -131,9 +119,21 @@ export default function WorkspacePage() {
             placeholder="Search projects…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            rightEl={
+              query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  style={{ cursor: "pointer", display: "inline-flex", color: "var(--text-3)", border: "none", background: "transparent", padding: "4px" }}
+                  title="Clear"
+                >
+                  {I.x({ size: 14 })}
+                </button>
+              )
+            }
           />
         </div>
-        <Btn variant="ghost" size="sm" icon={I.filter({ size: 13 })}>Filter</Btn>
+        <Btn variant="ghost" size="sm" icon={I.filter({ size: 13 })} onClick={() => toast.info("Filter coming soon.")}>Filter</Btn>
         <div style={{ flex: 1 }} />
         {/* Grid / List toggle */}
         <div style={{

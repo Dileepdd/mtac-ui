@@ -9,7 +9,6 @@ import { Avatar } from "@/components/shared/Avatar";
 import { StatCard } from "@/components/shared/StatCard";
 import { ProjectGlyph } from "@/components/shared/ProjectGlyph";
 import { StatusDot, PriorityBars } from "@/icons";
-import { Tag } from "@/components/shared/Tag";
 
 function timeSince(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
